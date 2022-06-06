@@ -14,8 +14,6 @@ import pandas as pd
 parser = argparse.ArgumentParser()
 parser.add_argument('--records', default='100', 
     help='Amount of mock data records to generate')
-parser.add_argument('--s3-bucket-name', default='poc-id-graph-733157031621', 
-    help='Amazon S3 bucket to upload generated CSV files per dataset')
 parser.add_argument('--debug', default=0, type=int, choices=[0,1], 
     help='Turn On/Off debugging (detailed output with muck data generated)')
 
@@ -25,41 +23,9 @@ args = parser.parse_args()
 fake = Faker('en_US')
 # Get current working directory
 cwd = os.getcwd()
-
-# Faker provider to define Loyalty levels
-loyalty_provider = DynamicProvider(
-    provider_name = "loyalty_level",
-    elements = [
-        "beginner", 
-        "entusiast", 
-        "active", 
-        "leader"
-        ]
-    )
-
-# Faker provider to randomize across unique user names
-username_id_provider = DynamicProvider(
-    provider_name = "username_id",
-    elements = [ fake.unique.user_name() for l in range(int(args.records)) ]
-    )
-
-# Faker provider to randomize across unique emails
-email_provider = DynamicProvider(
-    provider_name = "email",
-    elements = [ fake.unique.safe_email() for m in range(int(args.records)) ]
-    )
-
-# Faker provider to randomize across unique external IDs
-external_id_provider = DynamicProvider(
-    provider_name = "external_id",
-    elements = [ fake.unique.ssn() for s in range(int(args.records)) ]
-    )
-
-# Global list with valid usernames from first-party dataset
+# Global lists for customer profile attributes
 known_usernames = []
-# Global list with valid emails from first-party dataset
 known_emails = []
-# Global list with valid external IDs from first-party dataset
 known_external_ids = []
 
 # Create mock data for first-party source dataset (e.g. CRM database)
@@ -68,43 +34,47 @@ def create_first_party_dataset():
     fields = [ 'user_name', 'email', 'phone_number', 'external_id', 
         'street_address', 'postcode', 'city', 'country', 'birthday', 
         'loyalty_points', 'loyalty_level' ]
-    # Adding custom providers
+    # Faker provider to define Loyalty levels
+    loyalty_provider = DynamicProvider(
+        provider_name = "loyalty_level",
+        elements = [ "beginner", "entusiast", "active", "leader" ]
+        )
+        
+    # Adding custom providers to global Faker
     fake.add_provider(loyalty_provider)
-    fake.add_provider(username_id_provider)
-    fake.add_provider(email_provider)
-    fake.add_provider(external_id_provider)
     
     print('Creating first-party source dataset')
     
     try:
-        # Create CSV file for first-party dataset
-        with open(filename, 'w') as csv_file:
-            writer = csv.writer(csv_file)
-            writer.writerow(fields)
-            if args.debug: print(fields)
+        # Create DataFrame for first-party dataset
+        firstparty_df = pd.DataFrame(columns=fields)
+        if args.debug: print(fields)
         
-            for i in range(int(args.records)):
-                user_name = fake.unique.username_id()
-                email = fake.unique.email()
-                phone_number = fake.phone_number()
-                external_id = fake.unique.external_id()
-                street_address = fake.street_address()
-                postcode = fake.postcode()
-                city = fake.city()
-                country = fake.country()
-                birthday = fake.date_of_birth(None,12,115)
-                loyalty_points = randint(100,10000)
-                loyalty_level = fake.loyalty_level()
-                row = [ user_name, email, external_id, phone_number, 
-                    street_address, postcode, city, country, birthday, 
-                    loyalty_points, loyalty_level 
-                    ]
-                writer.writerow(row)
-                known_usernames.append(row[0])
-                known_emails.append(row[1])
-                known_external_ids.append(row[2])
-                if args.debug: print(row)
-            
+        for i in range(int(args.records)):
+            user_name = fake.unique.user_name()
+            known_usernames.append(user_name)
+            email = fake.unique.safe_email()
+            known_emails.append(email)
+            phone_number = fake.phone_number()
+            external_id = fake.unique.ssn()
+            known_external_ids.append(external_id)
+            street_address = fake.street_address()
+            postcode = fake.postcode()
+            city = fake.city()
+            country = fake.country()
+            birthday = fake.date_of_birth(None,12,115)
+            loyalty_points = randint(100,10000)
+            loyalty_level = fake.loyalty_level()
+            row = [ user_name, email, phone_number, external_id, 
+                street_address, postcode, city, country, birthday, 
+                loyalty_points, loyalty_level 
+                ]
+            firstparty_df.loc[i] = row
+            if args.debug: print('First-party record: {0}'.format(row))
+        
+        # Create CSV file for first-party dataset
+        firstparty_df.to_csv(filename, index=False)
+        
         print('First-party dataset output file {0}/{1}'.format(
             cwd,filename))
     except Exception as e:
@@ -122,37 +92,53 @@ def create_transactional_dataset():
     models = [ 'S10', 'X10', 'd95', 'SmartX', 'X4T', '456ty']
     categories = [ 'Electronics', 'Home Appliances', 'Health & Sports']
     
+    # Faker provider to randomize across unique emails
+    email_provider = DynamicProvider(
+        provider_name = "email",
+        elements = known_emails
+        )
+    # Faker provider to randomize across unique external IDs
+    external_id_provider = DynamicProvider(
+        provider_name = "external_id",
+        elements = known_external_ids
+        )
+        
+    # Adding custom providers to global Faker
+    fake.add_provider(email_provider)
+    fake.add_provider(external_id_provider)
+    
     print('Creating transactional source dataset')
     
     try:
-        # Create CSV file for transactional dataset
-        with open(filename, 'w') as csv_file:
-            writer = csv.writer(csv_file)
-            writer.writerow(fields)
-            if args.debug: print(fields)
+        # Create DataFrame for first-party dataset
+        transactional_df = pd.DataFrame(columns=fields)
+        if args.debug: print(fields)
         
-            for i in range(int(args.records)):
-                product_id = fake.bothify('????-########').upper()
-                product_name = '{0} {1} {2}'.format(
-                    fake.word(ext_word_list=product),
-                    fake.word(ext_word_list=brands),
-                    fake.word(ext_word_list=models)
-                    )
-                purchased_date = fake.past_date(start_date='-10y')
-                product_category = fake.word(ext_word_list=categories)
-                customer_id = ''
-                customer_email = ''
-                if fake.pybool():
-                    customer_id = ( fake.external_id() if fake.pybool()
-                        else fake.ssn() )
-                else:
-                    customer_email = ( fake.email() if fake.pybool()
-                        else fake.safe_email() )
-                row = [ product_id, product_name, purchased_date, 
-                    product_category, customer_id, customer_email ]
-                writer.writerow(row)
-                if args.debug: print(row)
-                
+        for i in range(int(args.records)):
+            product_id = fake.bothify('????-########').upper()
+            product_name = '{0} {1} {2}'.format(
+                fake.word(ext_word_list=product),
+                fake.word(ext_word_list=brands),
+                fake.word(ext_word_list=models)
+                )
+            purchased_date = fake.past_date(start_date='-10y')
+            product_category = fake.word(ext_word_list=categories)
+            customer_id = ''
+            customer_email = ''
+            if fake.pybool():
+                customer_id = ( fake.external_id() if fake.pybool()
+                    else fake.ssn() )
+            else:
+                customer_email = ( fake.email() if fake.pybool()
+                    else fake.safe_email() )
+            row = [ product_id, product_name, purchased_date, 
+                product_category, customer_id, customer_email ]
+            transactional_df.loc[i] = row
+            if args.debug: print('Transactional record: {0}'.format(row))
+        
+        # Create CSV file for transactional dataset
+        transactional_df.to_csv(filename, index=False)
+        
         print('Transactional dataset output file: {0}/{1}'.format(
             cwd,filename))
     except Exception as e:
@@ -190,7 +176,6 @@ def generate_clickstream_record(session_id, timestamp, platform):
             domain_name, app_id, device_id, events, start_timestamp, 
             start_event, end_timestamp, end_event, session_duration_sec, 
             user_agent ]
-        if args.debug: print(row)
     except Exception as e:
         print(f"Unexpected exception : {str(e)}")
         raise e
@@ -199,6 +184,15 @@ def generate_clickstream_record(session_id, timestamp, platform):
 # Generate mock data for cookie source dataset
 def generate_cookie_record():
     row = []
+    
+    # Faker provider to randomize across unique user names
+    username_id_provider = DynamicProvider(
+        provider_name = "username_id",
+        elements = known_usernames
+        )
+    # Adding custom providers to global Faker
+    fake.add_provider(username_id_provider)
+    
     try:
         if fake.pybool():   # If user accept cookie and tracking
             cookie_id = fake.unique.uuid4()
@@ -211,7 +205,6 @@ def generate_cookie_record():
                 if fake.pybool() else '' )
             row = [ cookie_id, session_id, last_action, 
                 user_name, conversion_id ]
-            if args.debug: print(row)
     except Exception as e:
         print(f"Unexpected exception : {str(e)}")
         raise e
@@ -235,8 +228,12 @@ def create_cookie_clickstream_datasets():
     try:
         # Create DataFrame for cookie dataset
         cookies_df = pd.DataFrame(columns=cookie_fields)
+        if args.debug: 
+            print('Cookie Fields: {0}'.format(cookie_fields))
         # Create DataFrame for clickstream dataset
         clickstream_df = pd.DataFrame(columns=clickstream_fields)
+        if args.debug: 
+            print('Clickstream Fields: {0}'.format(clickstream_fields))
         
         for i in range(int(args.records)):
             if fake.pybool():   # True: is a web client
@@ -249,9 +246,9 @@ def create_cookie_clickstream_datasets():
                         )
                     cookies_df.loc[i] = cookie_row
                     clickstream_df.loc[i] = clickstream_row
-                    if args.debug: print(cookie_row)
-                    clickstream_df.loc[i] = clickstream_row
-                    if args.debug: print(clickstream_row)
+                    if args.debug:
+                        print('Cookie record: {0}'.format(cookie_row))
+                        print('Clickstream record: {0}'.format(clickstream_row))
             else:               # Anything else: is a mobile client
                 clickstream_row = generate_clickstream_record(
                     session_id=None,
@@ -259,7 +256,8 @@ def create_cookie_clickstream_datasets():
                     platform='mobile'
                     )
                 clickstream_df.loc[i] = clickstream_row
-                if args.debug: print(clickstream_row)
+                if args.debug:
+                    print('Clickstream record: {0}'.format(clickstream_row))
         
         # Create CSV file for cookie dataset
         cookies_df.to_csv(cookies_filename, index=False)
@@ -279,10 +277,11 @@ def main():
     try:
         if args.debug: print('Current working directory: {0}'.format(cwd))
         create_first_party_dataset()
-        print('\n')
+        print('')
         create_transactional_dataset()
-        print('\n')
+        print('')
         create_cookie_clickstream_datasets()
+        print('')
         fake.unique.clear()
     except Exception as e:
         print(f"Unexpected exception : {str(e)}")
