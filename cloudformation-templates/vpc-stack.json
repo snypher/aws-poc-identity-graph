@@ -1,0 +1,1000 @@
+{
+  "Description": "Amazon VPC for the Identity Graph PoC",
+  "Parameters": {
+    "InfrastructureID": {
+      "Description": "Infrastructure ID",
+      "Type": "String",
+      "AllowedPattern": "[-a-z0-9]+",
+      "MaxLength": 50,
+      "Default": "poc-identity-graph",
+    }
+  },
+  "Mappings": {
+    "Networking": {
+      "VPC": {
+        "CIDR": "10.7.0.0/16"
+      },
+      "PublicSubnetOne": {
+        "CIDR": "10.7.1.0/24"
+      },
+      "PublicSubnetTwo": {
+        "CIDR": "10.7.2.0/24"
+      },
+      "PublicSubnetThree": {
+        "CIDR": "10.7.3.0/24"
+      },
+      "PrivateSubnetOne": {
+        "CIDR": "10.7.101.0/24"
+      },
+      "PrivateSubnetTwo": {
+        "CIDR": "10.7.102.0/24"
+      },
+      "PrivateSubnetThree": {
+        "CIDR": "10.7.103.0/24"
+      }
+    }
+  },
+  "Resources": {
+    "VPC": {
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+        "EnableDnsSupport": "true",
+        "EnableDnsHostnames": "true",
+        "CidrBlock": {
+          "Fn::FindInMap": [
+            "Networking",
+            "VPC",
+            "CIDR"
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "vpc-${InfrastructureID}"
+          },
+          {
+            "Key": "Environment",
+            "Value": "ab3"
+          },
+          {
+            "Key": "auto-delete",
+            "Value": "never"
+          },
+          {
+            "Key": "CreatedBy",
+            "Value": "chvezk"
+          }
+        ]
+      }
+    },
+    "InternetGateway": {
+      "Type": "AWS::EC2::InternetGateway",
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "igw-${InfrastructureID}"
+          },
+          {
+            "Key": "Environment",
+            "Value": "ab3"
+          },
+          {
+            "Key": "auto-delete",
+            "Value": "never"
+          },
+          {
+            "Key": "CreatedBy",
+            "Value": "chvezk"
+          }
+        ]
+      }
+    },
+    "GatewayToInternet": {
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "InternetGatewayId": {
+          "Ref": "InternetGateway"
+        }
+      }
+    },
+    "NATGatewayOne": {
+      "DependsOn": "GatewayToInternet",
+      "Type": "AWS::EC2::NatGateway",
+      "Properties": {
+        "AllocationId": {
+          "Fn::GetAtt": [
+            "ElasticIPOne",
+            "AllocationId"
+          ]
+        },
+        "SubnetId": {
+          "Ref": "PublicSubnetOne"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "natgw-az1-${InfrastructureID}"
+          },
+          {
+            "Key": "Environment",
+            "Value": "ab3"
+          },
+          {
+            "Key": "auto-delete",
+            "Value": "never"
+          },
+          {
+            "Key": "CreatedBy",
+            "Value": "chvezk"
+          }
+        ]
+      }
+    },
+    "ElasticIPOne": {
+      "Type": "AWS::EC2::EIP",
+      "Properties": {
+        "Domain": "vpc",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "eip-natgw-az1-${InfrastructureID}"
+          },
+          {
+            "Key": "Environment",
+            "Value": "ab3"
+          },
+          {
+            "Key": "auto-delete",
+            "Value": "never"
+          },
+          {
+            "Key": "CreatedBy",
+            "Value": "chvezk"
+          }
+        ]
+      }
+    },
+    "NATGatewayTwo": {
+      "DependsOn": "GatewayToInternet",
+      "Type": "AWS::EC2::NatGateway",
+      "Properties": {
+        "AllocationId": {
+          "Fn::GetAtt": [
+            "ElasticIPTwo",
+            "AllocationId"
+          ]
+        },
+        "SubnetId": {
+          "Ref": "PublicSubnetTwo"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "natgw-az2-${InfrastructureID}"
+          },
+          {
+            "Key": "Environment",
+            "Value": "ab3"
+          },
+          {
+            "Key": "auto-delete",
+            "Value": "never"
+          },
+          {
+            "Key": "CreatedBy",
+            "Value": "chvezk"
+          }
+        ]
+      }
+    },
+    "ElasticIPTwo": {
+      "Type": "AWS::EC2::EIP",
+      "Properties": {
+        "Domain": "vpc",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "eip-natgw-az2-${InfrastructureID}"
+          },
+          {
+            "Key": "Environment",
+            "Value": "ab3"
+          },
+          {
+            "Key": "auto-delete",
+            "Value": "never"
+          },
+          {
+            "Key": "CreatedBy",
+            "Value": "chvezk"
+          }
+        ]
+      }
+    },
+    "NATGatewayThree": {
+      "DependsOn": "GatewayToInternet",
+      "Type": "AWS::EC2::NatGateway",
+      "Properties": {
+        "AllocationId": {
+          "Fn::GetAtt": [
+            "ElasticIPThree",
+            "AllocationId"
+          ]
+        },
+        "SubnetId": {
+          "Ref": "PublicSubnetThree"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "natgw-az3-${InfrastructureID}"
+          },
+          {
+            "Key": "Environment",
+            "Value": "ab3"
+          },
+          {
+            "Key": "auto-delete",
+            "Value": "never"
+          },
+          {
+            "Key": "CreatedBy",
+            "Value": "chvezk"
+          }
+        ]
+      }
+    },
+    "ElasticIPThree": {
+      "Type": "AWS::EC2::EIP",
+      "Properties": {
+        "Domain": "vpc",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "eip-natgw-az3-${InfrastructureID}"
+          },
+          {
+            "Key": "Environment",
+            "Value": "ab3"
+          },
+          {
+            "Key": "auto-delete",
+            "Value": "never"
+          },
+          {
+            "Key": "CreatedBy",
+            "Value": "chvezk"
+          }
+        ]
+      }
+    },
+    "PublicRouteTable": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "public-rt-${InfrastructureID}"
+          },
+          {
+            "Key": "Environment",
+            "Value": "ab3"
+          },
+          {
+            "Key": "auto-delete",
+            "Value": "never"
+          },
+          {
+            "Key": "CreatedBy",
+            "Value": "chvezk"
+          }
+        ]
+      }
+    },
+    "PublicRoute": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "PublicRouteTable"
+        },
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": {
+          "Ref": "InternetGateway"
+        }
+      }
+    },
+    "PublicSubnetOne": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "MapPublicIpOnLaunch": true,
+        "CidrBlock": {
+          "Fn::FindInMap": [
+            "Networking",
+            "PublicSubnetOne",
+            "CIDR"
+          ]
+        },
+        "AvailabilityZone": {
+          "Fn::Select": [
+            "0",
+            {
+              "Fn::GetAZs": {
+                "Ref": "AWS::Region"
+              }
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "public-subnet-az1-${InfrastructureID}"
+          },
+          {
+            "Key": "Environment",
+            "Value": "ab3"
+          },
+          {
+            "Key": "auto-delete",
+            "Value": "never"
+          },
+          {
+            "Key": "CreatedBy",
+            "Value": "chvezk"
+          }
+        ]
+      }
+    },
+    "PublicSubnetOneRouteTableAssociation": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "PublicSubnetOne"
+        },
+        "RouteTableId": {
+          "Ref": "PublicRouteTable"
+        }
+      }
+    },
+    "PublicSubnetTwo": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "MapPublicIpOnLaunch": true,
+        "CidrBlock": {
+          "Fn::FindInMap": [
+            "Networking",
+            "PublicSubnetTwo",
+            "CIDR"
+          ]
+        },
+        "AvailabilityZone": {
+          "Fn::Select": [
+            "1",
+            {
+              "Fn::GetAZs": {
+                "Ref": "AWS::Region"
+              }
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "public-subnet-az2-${InfrastructureID}"
+          },
+          {
+            "Key": "Environment",
+            "Value": "ab3"
+          },
+          {
+            "Key": "auto-delete",
+            "Value": "never"
+          },
+          {
+            "Key": "CreatedBy",
+            "Value": "chvezk"
+          }
+        ]
+      }
+    },
+    "PublicSubnetTwoRouteTableAssociation": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "PublicSubnetTwo"
+        },
+        "RouteTableId": {
+          "Ref": "PublicRouteTable"
+        }
+      }
+    },
+    "PublicSubnetThree": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "MapPublicIpOnLaunch": true,
+        "CidrBlock": {
+          "Fn::FindInMap": [
+            "Networking",
+            "PublicSubnetThree",
+            "CIDR"
+          ]
+        },
+        "AvailabilityZone": {
+          "Fn::Select": [
+            "2",
+            {
+              "Fn::GetAZs": {
+                "Ref": "AWS::Region"
+              }
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "public-subnet-az3-${InfrastructureID}"
+          },
+          {
+            "Key": "Environment",
+            "Value": "ab3"
+          },
+          {
+            "Key": "auto-delete",
+            "Value": "never"
+          },
+          {
+            "Key": "CreatedBy",
+            "Value": "chvezk"
+          }
+        ]
+      }
+    },
+    "PublicSubnetThreeRouteTableAssociation": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "PublicSubnetThree"
+        },
+        "RouteTableId": {
+          "Ref": "PublicRouteTable"
+        }
+      }
+    },
+    "PrivateRouteTableOne": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "private-rt-az1-${InfrastructureID}"
+          },
+          {
+            "Key": "Environment",
+            "Value": "ab3"
+          },
+          {
+            "Key": "auto-delete",
+            "Value": "never"
+          },
+          {
+            "Key": "CreatedBy",
+            "Value": "chvezk"
+          }
+        ]
+      }
+    },
+    "PrivateRouteToInternetOne": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "PrivateRouteTableOne"
+        },
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "NatGatewayId": {
+          "Ref": "NATGatewayOne"
+        }
+      }
+    },
+    "PrivateRouteTableTwo": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "private-rt-az2-${InfrastructureID}"
+          },
+          {
+            "Key": "Environment",
+            "Value": "ab3"
+          },
+          {
+            "Key": "auto-delete",
+            "Value": "never"
+          },
+          {
+            "Key": "CreatedBy",
+            "Value": "chvezk"
+          }
+        ]
+      }
+    },
+    "PrivateRouteToInternetTwo": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "PrivateRouteTableTwo"
+        },
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "NatGatewayId": {
+          "Ref": "NATGatewayTwo"
+        }
+      }
+    },
+    "PrivateRouteTableThree": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "private-rt-az3-${InfrastructureID}"
+          },
+          {
+            "Key": "Environment",
+            "Value": "ab3"
+          },
+          {
+            "Key": "auto-delete",
+            "Value": "never"
+          },
+          {
+            "Key": "CreatedBy",
+            "Value": "chvezk"
+          }
+        ]
+      }
+    },
+    "PrivateRouteToInternetThree": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "PrivateRouteTableThree"
+        },
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "NatGatewayId": {
+          "Ref": "NATGatewayThree"
+        }
+      }
+    },
+    "PrivateSubnetOne": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "CidrBlock": {
+          "Fn::FindInMap": [
+            "Networking",
+            "PrivateSubnetOne",
+            "CIDR"
+          ]
+        },
+        "MapPublicIpOnLaunch": "true",
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "AvailabilityZone": {
+          "Fn::Select": [
+            0,
+            {
+              "Fn::GetAZs": ""
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "private-subnet-az1-${InfrastructureID}"
+          },
+          {
+            "Key": "Environment",
+            "Value": "ab3"
+          },
+          {
+            "Key": "auto-delete",
+            "Value": "never"
+          },
+          {
+            "Key": "CreatedBy",
+            "Value": "chvezk"
+          }
+        ]
+      }
+    },
+    "PrivateSubnetTwo": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "CidrBlock": {
+          "Fn::FindInMap": [
+            "Networking",
+            "PrivateSubnetTwo",
+            "CIDR"
+          ]
+        },
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "AvailabilityZone": {
+          "Fn::Select": [
+            1,
+            {
+              "Fn::GetAZs": ""
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "private-subnet-az2-${InfrastructureID}"
+          },
+          {
+            "Key": "Environment",
+            "Value": "ab3"
+          },
+          {
+            "Key": "auto-delete",
+            "Value": "never"
+          },
+          {
+            "Key": "CreatedBy",
+            "Value": "chvezk"
+          }
+        ]
+      }
+    },
+    "PrivateSubnetThree": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "CidrBlock": {
+          "Fn::FindInMap": [
+            "Networking",
+            "PrivateSubnetThree",
+            "CIDR"
+          ]
+        },
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "AvailabilityZone": {
+          "Fn::Select": [
+            2,
+            {
+              "Fn::GetAZs": ""
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "private-subnet-az3-${InfrastructureID}"
+          },
+          {
+            "Key": "Environment",
+            "Value": "ab3"
+          },
+          {
+            "Key": "auto-delete",
+            "Value": "never"
+          },
+          {
+            "Key": "CreatedBy",
+            "Value": "chvezk"
+          }
+        ]
+      }
+    },
+    "PrivateSubnetOneRouteTableAssociation": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "DependsOn": [
+        "PrivateSubnetOne"
+      ],
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "PrivateRouteTableOne"
+        },
+        "SubnetId": {
+          "Ref": "PrivateSubnetOne"
+        }
+      }
+    },
+    "PrivateSubnetTwoRouteTableAssociation": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "DependsOn": [
+        "PrivateSubnetTwo"
+      ],
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "PrivateRouteTableTwo"
+        },
+        "SubnetId": {
+          "Ref": "PrivateSubnetTwo"
+        }
+      }
+    },
+    "PrivateSubnetThreeRouteTableAssociation": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "DependsOn": [
+        "PrivateSubnetThree"
+      ],
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "PrivateRouteTableThree"
+        },
+        "SubnetId": {
+          "Ref": "PrivateSubnetThree"
+        }
+      }
+    },
+    "VPCS3Endpoint": {
+      "Type": "AWS::EC2::VPCEndpoint",
+      "DependsOn": [
+        "VPC"
+      ],
+      "Properties": {
+        "RouteTableIds": [
+          {
+            "Ref": "PublicRouteTable"
+          }
+        ],
+        "ServiceName": {
+          "Fn::Join": [
+            "",
+            [
+              "com.amazonaws.",
+              {
+                "Ref": "AWS::Region"
+              },
+              ".s3"
+            ]
+          ]
+        },
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": "*",
+              "Action": [
+                "s3:*"
+              ],
+              "Resource": [
+                "*"
+              ]
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "s3-endpoint-${InfrastructureID}"
+          },
+          {
+            "Key": "Environment",
+            "Value": "ab3"
+          },
+          {
+            "Key": "auto-delete",
+            "Value": "never"
+          },
+          {
+            "Key": "CreatedBy",
+            "Value": "chvezk"
+          }
+        ]
+      }
+    },
+    "NeptuneClientSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "DependsOn": [
+        "VPC"
+      ],
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "GroupDescription": "Allow Access",
+        "SecurityGroupIngress": [
+          {
+            "FromPort": "22",
+            "ToPort": "22",
+            "IpProtocol": "tcp",
+            "CidrIp": "0.0.0.0/0",
+            "Description": "SSH from anywhere"
+          },
+          {
+            "FromPort": "8182",
+            "ToPort": "8182",
+            "IpProtocol": "tcp",
+            "CidrIp": "0.0.0.0/0",
+            "Description": "HTTP access"
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "neptune-client-sg-${InfrastructureID}"
+          },
+          {
+            "Key": "Environment",
+            "Value": "ab3"
+          },
+          {
+            "Key": "auto-delete",
+            "Value": "never"
+          },
+          {
+            "Key": "CreatedBy",
+            "Value": "chvezk"
+          }
+        ]
+      }
+    },
+    "NeptuneSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "DependsOn": [
+        "NeptuneClientSecurityGroup"
+      ],
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "GroupDescription": "Allow Access",
+        "SecurityGroupIngress": [
+          {
+            "FromPort": "22",
+            "ToPort": "22",
+            "IpProtocol": "tcp",
+            "SourceSecurityGroupId": {
+              "Ref": "NeptuneClientSecurityGroup"
+            },
+            "Description": "SSH from Neptune client security group"
+          },
+          {
+            "FromPort": "8182",
+            "ToPort": "8182",
+            "IpProtocol": "tcp",
+            "SourceSecurityGroupId": {
+              "Ref": "NeptuneClientSecurityGroup"
+            },
+            "Description": "HTTP access from Neptune client security group"
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "neptune-db-sg-${InfrastructureID}"
+          },
+          {
+            "Key": "Environment",
+            "Value": "ab3"
+          },
+          {
+            "Key": "auto-delete",
+            "Value": "never"
+          },
+          {
+            "Key": "CreatedBy",
+            "Value": "chvezk"
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "VPC": {
+      "Description": "VPC",
+      "Value": {
+        "Ref": "VPC"
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${InfrastructureID}-VPC"
+        }
+      }
+    },
+    "PublicRouteTable": {
+      "Description": "Public route table",
+      "Value": {
+        "Ref": "PublicRouteTable"
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${InfrastructureID}-PublicRouteTable"
+        }
+      }
+    },
+    "PrivateSubnetIDs": {
+      "Description": "Private subnet IDs",
+      "Value": {
+        "Fn::Join": [
+          ",",
+          [
+            {
+              "Ref": "PrivateSubnetOne"
+            },
+            {
+              "Ref": "PrivateSubnetTwo"
+            },
+            {
+              "Ref": "PrivateSubnetThree"
+            }
+          ]
+        ]
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${InfrastructureID}-PrivateSubnetIDs"
+        }
+      }
+    },
+    "DefaultSecurityGroup": {
+      "Description": "Neptune VPC default security group",
+      "Value": {
+        "Fn::GetAtt": [
+          "VPC",
+          "DefaultSecurityGroup"
+        ]
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${InfrastructureID}-DefaultSecurityGroup"
+        }
+      }
+    },
+    "NeptuneSecurityGroup": {
+      "Description": "Neptune DB security group",
+      "Value": {
+        "Ref": "NeptuneSecurityGroup"
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${InfrastructureID}-NeptuneSecurityGroup"
+        }
+      }
+    },
+    "NeptuneClientSecurityGroup": {
+      "Description": "Neptune client security group",
+      "Value": {
+        "Ref": "NeptuneClientSecurityGroup"
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${InfrastructureID}-NeptuneClientSecurityGroup"
+        }
+      }
+    }
+  }
+}
