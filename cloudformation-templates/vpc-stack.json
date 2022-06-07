@@ -6,7 +6,7 @@
       "Type": "String",
       "AllowedPattern": "[-a-z0-9]+",
       "MaxLength": 50,
-      "Default": "poc-identity-graph",
+      "Default": "poc-identity-graph"
     }
   },
   "Mappings": {
@@ -50,7 +50,9 @@
         "Tags": [
           {
             "Key": "Name",
-            "Value": "vpc-${InfrastructureID}"
+            "Value": {
+              "Fn::Sub": "vpc-${InfrastructureID}"
+            }
           },
           {
             "Key": "Environment",
@@ -73,7 +75,9 @@
         "Tags": [
           {
             "Key": "Name",
-            "Value": "igw-${InfrastructureID}"
+            "Value": {
+              "Fn::Sub": "igw-${InfrastructureID}"
+            }
           },
           {
             "Key": "Environment",
@@ -117,7 +121,9 @@
         "Tags": [
           {
             "Key": "Name",
-            "Value": "natgw-az1-${InfrastructureID}"
+            "Value": {
+              "Fn::Sub": "natgw-az1-${InfrastructureID}"
+            }
           },
           {
             "Key": "Environment",
@@ -141,7 +147,9 @@
         "Tags": [
           {
             "Key": "Name",
-            "Value": "eip-natgw-az1-${InfrastructureID}"
+            "Value": {
+              "Fn::Sub": "eip-natgw-az1-${InfrastructureID}"
+            }
           },
           {
             "Key": "Environment",
@@ -174,7 +182,9 @@
         "Tags": [
           {
             "Key": "Name",
-            "Value": "natgw-az2-${InfrastructureID}"
+            "Value": {
+              "Fn::Sub": "natgw-az2-${InfrastructureID}"
+            }
           },
           {
             "Key": "Environment",
@@ -198,7 +208,9 @@
         "Tags": [
           {
             "Key": "Name",
-            "Value": "eip-natgw-az2-${InfrastructureID}"
+            "Value": {
+              "Fn::Sub": "eip-natgw-az2-${InfrastructureID}"
+            }
           },
           {
             "Key": "Environment",
@@ -231,7 +243,9 @@
         "Tags": [
           {
             "Key": "Name",
-            "Value": "natgw-az3-${InfrastructureID}"
+            "Value": {
+              "Fn::Sub": "natgw-az3-${InfrastructureID}"
+            }
           },
           {
             "Key": "Environment",
@@ -255,7 +269,9 @@
         "Tags": [
           {
             "Key": "Name",
-            "Value": "eip-natgw-az3-${InfrastructureID}"
+            "Value": {
+              "Fn::Sub": "eip-natgw-az3-${InfrastructureID}"
+            }
           },
           {
             "Key": "Environment",
@@ -281,7 +297,9 @@
         "Tags": [
           {
             "Key": "Name",
-            "Value": "public-rt-${InfrastructureID}"
+            "Value": {
+              "Fn::Sub": "public-rt-${InfrastructureID}"
+            }
           },
           {
             "Key": "Environment",
@@ -337,7 +355,9 @@
         "Tags": [
           {
             "Key": "Name",
-            "Value": "public-subnet-az1-${InfrastructureID}"
+            "Value": {
+              "Fn::Sub": "public-subnet-az1-${InfrastructureID}"
+            }
           },
           {
             "Key": "Environment",
@@ -392,7 +412,9 @@
         "Tags": [
           {
             "Key": "Name",
-            "Value": "public-subnet-az2-${InfrastructureID}"
+            "Value": {
+              "Fn::Sub": "public-subnet-az2-${InfrastructureID}"
+            }
           },
           {
             "Key": "Environment",
@@ -447,7 +469,9 @@
         "Tags": [
           {
             "Key": "Name",
-            "Value": "public-subnet-az3-${InfrastructureID}"
+            "Value": {
+              "Fn::Sub": "public-subnet-az3-${InfrastructureID}"
+            }
           },
           {
             "Key": "Environment",
@@ -484,7 +508,9 @@
         "Tags": [
           {
             "Key": "Name",
-            "Value": "private-rt-az1-${InfrastructureID}"
+            "Value": {
+              "Fn::Sub": "private-rt-az1-${InfrastructureID}"
+            }
           },
           {
             "Key": "Environment",
@@ -522,7 +548,9 @@
         "Tags": [
           {
             "Key": "Name",
-            "Value": "private-rt-az2-${InfrastructureID}"
+            "Value": {
+              "Fn::Sub": "private-rt-az2-${InfrastructureID}"
+            }
           },
           {
             "Key": "Environment",
@@ -560,7 +588,9 @@
         "Tags": [
           {
             "Key": "Name",
-            "Value": "private-rt-az3-${InfrastructureID}"
+            "Value": {
+              "Fn::Sub": "private-rt-az3-${InfrastructureID}"
+            }
           },
           {
             "Key": "Environment",
@@ -614,7 +644,9 @@
         "Tags": [
           {
             "Key": "Name",
-            "Value": "private-subnet-az1-${InfrastructureID}"
+            "Value": {
+              "Fn::Sub": "private-subnet-az1-${InfrastructureID}"
+            }
           },
           {
             "Key": "Environment",
@@ -655,7 +687,9 @@
         "Tags": [
           {
             "Key": "Name",
-            "Value": "private-subnet-az2-${InfrastructureID}"
+            "Value": {
+              "Fn::Sub": "private-subnet-az2-${InfrastructureID}"
+            }
           },
           {
             "Key": "Environment",
@@ -696,7 +730,9 @@
         "Tags": [
           {
             "Key": "Name",
-            "Value": "private-subnet-az3-${InfrastructureID}"
+            "Value": {
+              "Fn::Sub": "private-subnet-az3-${InfrastructureID}"
+            }
           },
           {
             "Key": "Environment",
@@ -796,24 +832,7 @@
             }
           ]
         },
-        "Tags": [
-          {
-            "Key": "Name",
-            "Value": "s3-endpoint-${InfrastructureID}"
-          },
-          {
-            "Key": "Environment",
-            "Value": "ab3"
-          },
-          {
-            "Key": "auto-delete",
-            "Value": "never"
-          },
-          {
-            "Key": "CreatedBy",
-            "Value": "chvezk"
-          }
-        ]
+        "VpcEndpointType": "Gateway"
       }
     },
     "NeptuneClientSecurityGroup": {
@@ -845,7 +864,9 @@
         "Tags": [
           {
             "Key": "Name",
-            "Value": "neptune-client-sg-${InfrastructureID}"
+            "Value": {
+              "Fn::Sub": "neptune-client-sg-${InfrastructureID}"
+            }
           },
           {
             "Key": "Environment",
@@ -895,7 +916,9 @@
         "Tags": [
           {
             "Key": "Name",
-            "Value": "neptune-db-sg-${InfrastructureID}"
+            "Value": {
+              "Fn::Sub": "neptune-db-sg-${InfrastructureID}"
+            }
           },
           {
             "Key": "Environment",
