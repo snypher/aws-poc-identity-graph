@@ -959,6 +959,30 @@
         }
       }
     },
+    "PublicSubnetIDs": {
+      "Description": "Public subnet IDs",
+      "Value": {
+        "Fn::Join": [
+          ",",
+          [
+            {
+              "Ref": "PublicSubnetOne"
+            },
+            {
+              "Ref": "PublicSubnetTwo"
+            },
+            {
+              "Ref": "PublicSubnetThree"
+            }
+          ]
+        ]
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${InfrastructureID}-PublicSubnetIDs"
+        }
+      }
+    },
     "PrivateSubnetIDs": {
       "Description": "Private subnet IDs",
       "Value": {

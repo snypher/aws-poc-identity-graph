@@ -1,0 +1,1053 @@
+{
+  "Description": "Neptune DB cluster and EC2 client for the Identity Graph PoC",
+  "Parameters": {
+    "EC2SSHKeyPairName": {
+      "Description": "Name of an existing EC2 KeyPair to enable SSH access to the instances. Required if an EC2ClientInstanceType is specified",
+      "Type": "String",
+      "ConstraintDescription": "Must be the name of an existing EC2 KeyPair in same region.",
+      "Default": "ssh-key-poc-identity-graph"
+    },
+    "DBInstanceType": {
+      "Description": "Neptune DB instance type",
+      "Type": "String",
+      "Default": "db.r6g.2xlarge",
+      "AllowedValues": [
+        "db.t3.medium",
+        "db.r4.large",
+        "db.r4.xlarge",
+        "db.r4.2xlarge",
+        "db.r4.4xlarge",
+        "db.r4.8xlarge",
+        "db.r5.large",
+        "db.r5.xlarge",
+        "db.r5.2xlarge",
+        "db.r5.4xlarge",
+        "db.r5.8xlarge",
+        "db.r5a.large",
+        "db.r5a.xlarge",
+        "db.r5a.2xlarge",
+        "db.r5a.4xlarge",
+        "db.r5a.8xlarge",
+        "db.r6g.large",
+        "db.r6g.xlarge",
+        "db.r6g.2xlarge",
+        "db.r6g.4xlarge",
+        "db.r6g.8xlarge"
+      ],
+      "ConstraintDescription": "Must be a valid Neptune instance type. Note that for Stockholm and OSU only R5 and T3 instances are available."
+    },
+    "DBReplicaIdentifierSuffix": {
+      "Description": "OPTIONAL: The ID suffix for the Neptune replica to use. Empty means no read replica.",
+      "Type": "String",
+      "Default": "replica1"
+    },
+    "DBClusterPort": {
+      "Type": "String",
+      "Default": "8182",
+      "Description": "Enter the port of your Neptune cluster"
+    },
+    "EC2ClientInstanceType": {
+      "Description": "EC2 client instance",
+      "Type": "String",
+      "Default": "r5.xlarge",
+      "AllowedValues": [
+        "none",
+        "t3.micro",
+        "t3.small",
+        "t3.medium",
+        "m5.large",
+        "m5.xlarge",
+        "m5.2xlarge",
+        "m5.4xlarge",
+        "m5.12xlarge",
+        "r4.large",
+        "r4.xlarge",
+        "r4.2xlarge",
+        "r4.4xlarge",
+        "r4.8xlarge",
+        "r5.large",
+        "r5.xlarge",
+        "r5.2xlarge",
+        "r5.4xlarge",
+        "r5.12xlarge"
+      ],
+      "ConstraintDescription": "Must be a valid EC2 instance type. Note some regions support limited instance types only. Ex: Stockholm and OSU does not support R4 instances"
+    },
+    "NeptuneQueryTimeout": {
+      "Type": "Number",
+      "Default": 20000,
+      "Description": "Neptune query timeout (in milliseconds)"
+    },
+    "NeptuneEnableAuditLog": {
+      "Type": "Number",
+      "Default": 1,
+      "AllowedValues": [
+        0,
+        1
+      ],
+      "Description": "Enable audit log. 0 means disable and 1 means enable."
+    },
+    "IAMAuthEnabled": {
+      "Type": "String",
+      "Default": "true",
+      "AllowedValues": [
+        "true",
+        "false"
+      ],
+      "Description": "Enable IAM auth for Neptune."
+    },
+    "SetupGremlinConsole": {
+      "Type": "String",
+      "Default": "true",
+      "AllowedValues": [
+        "true",
+        "false"
+      ],
+      "Description": "Setup Gremlin console."
+    },
+    "SetupRDF4JConsole": {
+      "Type": "String",
+      "Default": "false",
+      "AllowedValues": [
+        "true",
+        "false"
+      ],
+      "Description": "Setup RDF4J console."
+    },
+    "AttachBulkloadIAMRoleToNeptuneCluster": {
+      "Type": "String",
+      "Default": "true",
+      "AllowedValues": [
+        "true",
+        "false"
+      ],
+      "Description": "Attach Bulkload IAM role to cluster"
+    },
+    "InfrastructureID": {
+      "Description": "Infrastructure ID",
+      "Type": "String",
+      "AllowedPattern": "[-a-z0-9]+",
+      "MaxLength": 50,
+      "Default": "poc-identity-graph"
+    },
+    "ApplicationID": {
+      "Description": "Application ID",
+      "Type": "String",
+      "AllowedPattern": "[-a-z0-9]+",
+      "MaxLength": 50,
+      "Default": "poc-identity-graph"
+    },
+    "EC2ClientAmiId": {
+      "Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
+      "Default": "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
+    },
+    "NeptuneEC2ClientCustomizationScript": {
+      "Description": "Neptune EC2 client customization script",
+      "Type": "String",
+      "Default" : ""
+    }
+  },
+  "Rules": {
+    "DBInstanceTypeVsRegion": {
+      "RuleCondition": {
+        "Fn::Or" : [
+        { "Fn::Equals": [
+          { "Ref": "AWS::Region" },
+          "eu-north-1"
+        ]}, 
+        { "Fn::Equals": [
+          { "Ref": "AWS::Region" },
+            "us-gov-east-1"
+        ]},
+        { "Fn::Equals": [
+          { "Ref": "AWS::Region" },
+          "us-west-1"
+        ]},
+        { "Fn::Equals": [
+          { "Ref": "AWS::Region" },
+          "sa-east-1"
+        ]},
+        { "Fn::Equals": [
+          { "Ref": "AWS::Region" },
+          "ap-east-1"
+        ]},
+        { "Fn::Equals": [
+          { "Ref": "AWS::Region" },
+          "ca-central-1"
+        ]},
+        { "Fn::Equals": [
+          { "Ref": "AWS::Region" },
+          "me-south-1"
+        ]},
+        { "Fn::Equals": [
+          { "Ref": "AWS::Region"},
+          "cn-northwest-1"
+        ]}]
+      },
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Contains": [
+              [ "db.t3.medium", "db.r5.large", "db.r5.xlarge", "db.r5.2xlarge", "db.r5.4xlarge", "db.r5.12xlarge" ],
+              { "Ref": "DBInstanceType" }
+            ]
+          },
+          "AssertDescription": "Only R5 and T3 Instances are available in eu-north-1 (ARN), us-gov-east-1 (OSU), ca-central-1 (YUL), us-west-1 (SFO), me-south-1 (BAH), ap-east-1 (HKG), sa-east-1 (GRU) and cn-northwest-1 (ZHY)"
+        }
+      ]
+    },
+    "EC2ClientInstanceTypeVsRegion": {
+      "RuleCondition": {
+          "Fn::Or" : [
+          { "Fn::Equals": [
+            { "Ref": "AWS::Region" },
+            "eu-north-1"
+          ]},
+          { "Fn::Equals": [
+            { "Ref": "AWS::Region" },
+              "us-gov-east-1"
+          ]},
+          { "Fn::Equals": [
+            { "Ref": "AWS::Region" },
+              "us-west-1"
+          ]},
+          { "Fn::Equals": [
+            { "Ref": "AWS::Region" },
+              "ap-east-1"
+          ]},
+          { "Fn::Equals": [
+            { "Ref": "AWS::Region" },
+              "sa-east-1"
+          ]},
+          { "Fn::Equals": [
+            { "Ref": "AWS::Region" },
+            "ca-central-1"
+          ]},
+          { "Fn::Equals": [
+            { "Ref": "AWS::Region" },
+            "me-south-1"
+          ]},
+          { "Fn::Equals": [
+            { "Ref": "AWS::Region" },
+            "cn-northwest-1"
+          ]}]
+      },
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [ "r4.large", "r4.xlarge", "r4.2xlarge", "r4.4xlarge", "r4.8xlarge" ],
+                  { "Ref": "EC2ClientInstanceType" }
+                ]
+              }
+            ]
+          },
+          "AssertDescription": "R4 Instances are not available in eu-north-1 (ARN), us-gov-east-1 (OSU), ca-central-1 (YUL), us-west-1(SFO), me-south-1 (BAH), ap-east-1 (HKG), sa-east-1 (GRU) and cn-northwest-1 (ZHY)"
+        }
+      ]
+    },
+    "EC2SSHKeyPairNameRequiredIfEC2Instance": {
+      "RuleCondition": { 
+        "Fn::Not": [
+          { 
+            "Fn::Equals": [
+              { 
+                "Ref": "EC2ClientInstanceType"
+              },
+              "none"
+            ]
+          }
+        ]
+      },
+      "Assertions": [
+        {
+          "Assert": { 
+            "Fn::Not": [
+              { 
+                "Fn::Equals": [
+                  { 
+                    "Ref": "EC2SSHKeyPairName"
+                  }, 
+                  ""
+                ]
+              }
+            ]
+          },
+          "AssertDescription": "EC2SSHKeyPairName is required if an EC2 client instance is specified"
+        }
+      ]
+    }
+  },
+  "Conditions": {
+    "CreateDBReplicaInstance": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "DBReplicaIdentifierSuffix"
+            },
+            ""
+          ]
+        }
+      ]
+    },
+    "AZ3NotPresent": { 
+      "Fn::Or": [
+        { 
+          "Fn::Equals": [
+            { 
+              "Ref": "AWS::Region"
+            }, 
+            "ca-central-1"
+          ]
+        }, 
+        { 
+          "Fn::Equals": [
+            { 
+              "Ref": "AWS::Region"
+            }, 
+            "us-west-1"
+          ]
+        }
+      ]
+    },
+    "AZ3Present": { 
+      "Fn::Not": [
+        { 
+          "Condition": "AZ3NotPresent" 
+        }
+      ]
+    },
+    "CreateEC2Instance": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "EC2ClientInstanceType"
+            },
+            "none"
+          ]
+        }
+      ]
+    },
+    "SetupGremlinConsoleCondition": {
+      "Fn::Equals": [
+        {
+          "Ref": "SetupGremlinConsole"
+        },
+        "true"
+      ]
+    },
+    "SetupRDF4JConsoleCondition": {
+      "Fn::Equals": [
+        {
+          "Ref": "SetupRDF4JConsole"
+        },
+        "true"
+      ]
+    },
+    "AttachBulkloadIAMRoleToNeptuneClusterCondition": {
+      "Fn::Equals": [
+        {
+          "Ref": "AttachBulkloadIAMRoleToNeptuneCluster"
+        },
+        "true"
+      ]
+    }
+  },
+  "Resources": {
+    "NeptuneDBSubnetGroup": {
+      "Type": "AWS::Neptune::DBSubnetGroup",
+      "Properties": {
+        "DBSubnetGroupDescription": "Neptune DB subnet group",
+        "SubnetIds": {
+          "Fn::Split": [
+            ",",
+            {
+              "Fn::ImportValue": {
+                "Fn::Sub": "${InfrastructureID}-PrivateSubnetIDs"
+              }
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Sub": "neptune-subnet-group-${InfrastructureID}"
+            }
+          },
+          {
+            "Key": "Environment",
+            "Value": "ab3"
+          },
+          {
+            "Key": "auto-delete",
+            "Value": "never"
+          },
+          {
+            "Key": "CreatedBy",
+            "Value": "chvezk"
+          }
+        ]
+      }
+    },
+    "NeptuneDBClusterParameterGroup": {
+      "Type": "AWS::Neptune::DBClusterParameterGroup",
+      "Properties": {
+        "Family": "neptune1",
+        "Description": {
+          "Fn::Sub": "${ApplicationID} DB cluster parameter group"
+        },
+        "Name": {
+          "Fn::Sub": "cluster-parameter-group-${ApplicationID}"
+        },
+        "Parameters": {
+          "neptune_enable_audit_log": {
+            "Ref": "NeptuneEnableAuditLog"
+          }
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Sub": "neptune-param-group-${InfrastructureID}"
+            }
+          },
+          {
+            "Key": "Environment",
+            "Value": "ab3"
+          },
+          {
+            "Key": "auto-delete",
+            "Value": "never"
+          },
+          {
+            "Key": "CreatedBy",
+            "Value": "chvezk"
+          }
+        ]
+      }
+    },
+    "NeptuneDBParameterGroup": {
+      "Type": "AWS::Neptune::DBParameterGroup",
+      "Properties": {
+        "Family": "neptune1",
+        "Description": {
+          "Fn::Sub": "${ApplicationID} DB parameter group"
+        },
+        "Name": {
+          "Fn::Sub": "parameter-group-${ApplicationID}"
+        },
+        "Parameters": {
+          "neptune_query_timeout": {
+            "Ref": "NeptuneQueryTimeout"
+          }
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Sub": "param-group-${InfrastructureID}"
+            }
+          },
+          {
+            "Key": "Environment",
+            "Value": "ab3"
+          },
+          {
+            "Key": "auto-delete",
+            "Value": "never"
+          },
+          {
+            "Key": "CreatedBy",
+            "Value": "chvezk"
+          }
+        ]
+      }
+    },
+    "NeptuneDBCluster": {
+      "Type": "AWS::Neptune::DBCluster",
+      "Properties": {
+        "DBSubnetGroupName": {
+          "Ref": "NeptuneDBSubnetGroup"
+        },
+        "VpcSecurityGroupIds": [
+          {
+            "Fn::ImportValue": {
+              "Fn::Sub": "${InfrastructureID}-DefaultSecurityGroup"
+            }
+          },
+          {
+            "Fn::ImportValue": {
+              "Fn::Sub": "${InfrastructureID}-NeptuneSecurityGroup"
+            }
+          }
+        ],
+        "DBClusterIdentifier": {
+          "Fn::Sub": "neptune-cluster-${ApplicationID}"
+        },
+        "DBClusterParameterGroupName": {
+          "Ref": "NeptuneDBClusterParameterGroup"
+        },
+        "Port": {
+          "Ref": "DBClusterPort"
+        },
+        "IamAuthEnabled": {
+          "Ref": "IAMAuthEnabled"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Sub": "neptune-cluster-${InfrastructureID}"
+            }
+          },
+          {
+            "Key": "Environment",
+            "Value": "ab3"
+          },
+          {
+            "Key": "auto-delete",
+            "Value": "never"
+          },
+          {
+            "Key": "CreatedBy",
+            "Value": "chvezk"
+          }
+        ],
+        "AssociatedRoles": { 
+          "Fn::If": [ 
+            "AttachBulkloadIAMRoleToNeptuneClusterCondition", 
+            [
+              { 
+                "RoleArn": { 
+                  "Fn::ImportValue": { 
+                    "Fn::Sub": "${InfrastructureID}-NeptuneLoadFromS3RoleARN"
+                  }
+                }
+              }
+            ],
+            { "Ref": "AWS::NoValue" }
+          ]
+        }
+      },
+      "DependsOn": [
+        "NeptuneDBClusterParameterGroup"
+      ]
+    },
+    "NeptuneDBInstance": {
+      "Type": "AWS::Neptune::DBInstance",
+      "Properties": {
+        "DBClusterIdentifier": {
+          "Ref": "NeptuneDBCluster"
+        },
+        "DBInstanceClass": {
+          "Ref": "DBInstanceType"
+        },
+        "DBInstanceIdentifier": {
+          "Fn::Sub": "neptune-primary-${ApplicationID}"
+        },
+        "DBParameterGroupName": {
+          "Ref": "NeptuneDBParameterGroup"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Sub": "neptune-primary-${InfrastructureID}"
+            }
+          },
+          {
+            "Key": "Environment",
+            "Value": "ab3"
+          },
+          {
+            "Key": "auto-delete",
+            "Value": "never"
+          },
+          {
+            "Key": "CreatedBy",
+            "Value": "chvezk"
+          }
+        ]
+      },
+      "DependsOn": [
+        "NeptuneDBCluster",
+        "NeptuneDBParameterGroup"
+      ]
+    },
+    "NeptuneDBReplicaInstance": {
+      "Type": "AWS::Neptune::DBInstance",
+      "Condition": "CreateDBReplicaInstance",
+      "Properties": {
+        "DBInstanceIdentifier": {
+          "Fn::Sub": "neptune-${DBReplicaIdentifierSuffix}-${ApplicationID}"
+        },
+        "DBClusterIdentifier": {
+          "Ref": "NeptuneDBCluster"
+        },
+        "DBInstanceClass": {
+          "Ref": "DBInstanceType"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Sub": "neptune-${DBReplicaIdentifierSuffix}-${InfrastructureID}"
+            }
+          },
+          {
+            "Key": "Environment",
+            "Value": "ab3"
+          },
+          {
+            "Key": "auto-delete",
+            "Value": "never"
+          },
+          {
+            "Key": "CreatedBy",
+            "Value": "chvezk"
+          }
+        ]
+      },
+      "DependsOn": [
+        "NeptuneDBCluster",
+        "NeptuneDBInstance"
+      ]
+    },
+    "NeptuneEC2ClientInstance": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "KeyName": {
+          "Ref": "EC2SSHKeyPairName"
+        },
+        "InstanceType": {
+          "Ref": "EC2ClientInstanceType"
+        },
+        "ImageId": {
+          "Ref": "EC2ClientAmiId"
+        },
+        "IamInstanceProfile": { 
+          "Fn::ImportValue": { 
+            "Fn::Sub": "${InfrastructureID}-NeptuneEC2InstanceProfile" 
+          }
+        },
+        "SubnetId": {
+          "Fn::Select" : [ 
+            0, 
+            { 
+              "Fn::Split": [ 
+                ",", 
+                { 
+                  "Fn::ImportValue": { 
+                    "Fn::Sub": "${InfrastructureID}-PublicSubnetIDs" 
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "SecurityGroupIds": [
+          {
+            "Fn::ImportValue": {
+              "Fn::Sub": "${InfrastructureID}-NeptuneSecurityGroup"
+            }
+          },
+          {
+            "Fn::ImportValue": {
+              "Fn::Sub": "${InfrastructureID}-NeptuneClientSecurityGroup"
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Sub": "neptune-client-${InfrastructureID}"
+            }
+          },
+          {
+            "Key": "Environment",
+            "Value": "ab3"
+          },
+          {
+            "Key": "auto-delete",
+            "Value": "never"
+          },
+          {
+            "Key": "CreatedBy",
+            "Value": "chvezk"
+          }
+        ],
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Join": [
+              "",
+              [
+                "#!/bin/bash -xe\n",
+                "yum update -y ",
+                "\n",
+                "yum -y install python-pip",
+                "\n",
+                "yum -y install java-1.8.0-devel",
+                "\n",
+                "yum -y remove java-1.7.0-openjdk",
+                "\n",
+                "cur_dir=$PWD",
+                "\n",
+                "cd /home/ec2-user/",
+                "\n",
+                "pip install --upgrade awscli",
+                "\n",
+                {
+                  "Fn::If": [
+                    "SetupGremlinConsoleCondition",
+                    {
+                      "Fn::Join": ["", [
+                        "wget https://s3.amazonaws.com/aws-neptune-customer-samples/tinkerpop/apache-tinkerpop-gremlin-console-3.4.1-bin.zip",
+                        "\n",
+                        "unzip apache-tinkerpop-gremlin-console-3.4.1-bin.zip",
+                        "\n",
+                        "rm apache-tinkerpop-gremlin-console-3.4.1-bin.zip",
+                        "\n",
+                        "cd apache-tinkerpop-gremlin-console-3.4.1",
+                        "\n",
+                        "wget https://www.amazontrust.com/repository/SFSRootCAG2.pem",
+                        "\n",
+                        "cd conf",
+                        "\n",
+                        "echo hosts: [",
+                        {
+                          "Fn::GetAtt": [ 
+                            "NeptuneDBCluster", 
+                            "Endpoint" 
+                          ]
+                        },
+                        "] >> neptune-remote.yaml",
+                        "\n",
+                        "echo port: ",
+                        {
+                          "Fn::GetAtt": [ 
+                            "NeptuneDBCluster", 
+                            "Port" 
+                          ]
+                        },
+                        " >> neptune-remote.yaml",
+                        "\n",
+                        "echo connectionPool: { enableSsl: true, trustCertChainFile: \"SFSRootCAG2.pem\"}",
+                        " >> neptune-remote.yaml",
+                        "\n",
+                        "echo serializer: { className: org.apache.tinkerpop.gremlin.driver.ser.GryoMessageSerializerV3d0, config: { serializeResultToString: true }}",
+                        " >> neptune-remote.yaml",
+                        "\n"
+                      ]]
+                    },
+                    {"Ref": "AWS::NoValue"}
+                  ]
+                },
+                "\n",
+                "cd /home/ec2-user",
+                "\n",
+                {
+                  "Fn::If": [
+                    "SetupRDF4JConsoleCondition",
+                    {
+                      "Fn::Join": ["", [
+                        "wget https://s3.amazonaws.com/aws-neptune-customer-samples/rdf4j/eclipse-rdf4j-3.2.1-sdk.zip",
+                        "\n",
+                        "unzip eclipse-rdf4j-3.2.1-sdk.zip",
+                        "\n",
+                        "rm eclipse-rdf4j-3.2.1-sdk.zip",
+                        "\n"
+                      ]]
+                    },
+                    {"Ref": "AWS::NoValue"}
+                  ]
+                },
+                "\n",
+                {
+                  "Ref": "NeptuneEC2ClientCustomizationScript"
+                },
+                "\n",
+                "cd $cur_dir",
+                "\n",
+                "# Send signal to WaitHandle that the setup is completed\n",
+                "/opt/aws/bin/cfn-signal",
+                " -e 0",
+                " '",
+                {
+                  "Ref": "WaitHandle"
+                },
+                "'",
+                "\n"
+              ]
+            ]
+          }
+        }
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Init": {
+          "config": {
+            "packages": {
+              "yum": {}
+            }
+          }
+        }
+      }
+    },
+    "WaitHandle": {
+      "Type": "AWS::CloudFormation::WaitConditionHandle"
+    },
+    "WaitCondition": {
+      "Type": "AWS::CloudFormation::WaitCondition",
+      "DependsOn": "NeptuneEC2ClientInstance",
+      "Properties": {
+        "Handle": {
+          "Ref": "WaitHandle"
+        },
+        "Timeout": "1200"
+      }
+    }
+  },
+  "Outputs": {
+    "NeptuneDBClusterID": {
+      "Description": "Neptune cluster identifier",
+      "Value": {
+        "Ref": "NeptuneDBCluster"
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${ApplicationID}-NeptuneDBClusterID"
+        }
+      }
+    },
+    "NeptuneDBClusterResourceID": {
+      "Description": "Neptune Cluster resource identifier",
+      "Value": {
+        "Fn::GetAtt": [
+          "NeptuneDBCluster",
+          "ClusterResourceId"
+        ]
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${ApplicationID}-NeptuneDBClusterResourceID"
+        }
+      }
+    },
+    "NeptuneDBClusterEndpoint": {
+      "Description": "Cluster endpoint",
+      "Value": {
+        "Fn::GetAtt": [
+          "NeptuneDBCluster",
+          "Endpoint"
+        ]
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${ApplicationID}-NeptuneDBClusterEndpoint"
+        }
+      }
+    },
+    "NeptuneDBInstanceEndpoint": {
+      "Description": "Primary instance endpoint",
+      "Value": {
+        "Fn::GetAtt": [
+          "NeptuneDBInstance",
+          "Endpoint"
+        ]
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${ApplicationID}-NeptuneDBInstanceEndpoint"
+        }
+      }
+    },
+    "NeptuneDBReplicaInstanceEndpoint": {
+      "Description": "Read replica instance endpoint",
+      "Condition": "CreateDBReplicaInstance",
+      "Value": {
+        "Fn::GetAtt": [
+          "NeptuneDBReplicaInstance",
+          "Endpoint"
+        ]
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${ApplicationID}-NeptuneDBReplicaInstanceEndpoint"
+        }
+      }
+    },
+    "NeptuneSparqlEndpoint": {
+      "Description": "SPARQL endpoint for Neptune",
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "http://",
+            {
+              "Fn::GetAtt": [
+                "NeptuneDBCluster",
+                "Endpoint"
+              ]
+            },
+            ":",
+            {
+              "Fn::GetAtt": [
+                "NeptuneDBCluster",
+                "Port"
+              ]
+            },
+            "/sparql"
+          ]
+        ]
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${ApplicationID}-NeptuneSparqlEndpoint"
+        }
+      }
+    },
+    "NeptuneGremlinEndpoint": {
+      "Description": "Gremlin endpoint for Neptune",
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "ws://",
+            {
+              "Fn::GetAtt": [
+                "NeptuneDBCluster",
+                "Endpoint"
+              ]
+            },
+            ":",
+            {
+              "Fn::GetAtt": [
+                "NeptuneDBCluster",
+                "Port"
+              ]
+            },
+            "/gremlin"
+          ]
+        ]
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${ApplicationID}-NeptuneGremlinEndpoint"
+        }
+      }
+    },
+    "NeptuneLoaderEndpoint": {
+      "Description": "Loader endpoint for Neptune",
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "http://",
+            {
+              "Fn::GetAtt": [
+                "NeptuneDBCluster",
+                "Endpoint"
+              ]
+            },
+            ":",
+            {
+              "Fn::GetAtt": [
+                "NeptuneDBCluster",
+                "Port"
+              ]
+            },
+            "/loader"
+          ]
+        ]
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${ApplicationID}-NeptuneLoaderEndpoint"
+        }
+      }
+    },
+    "NeptuneDBClusterReadEndpoint": {
+      "Description": "DB cluster read endpoint",
+      "Value": {
+        "Fn::GetAtt": [
+          "NeptuneDBCluster",
+          "ReadEndpoint"
+        ]
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${ApplicationID}-NeptuneDBClusterReadEndpoint"
+        }
+      }
+    },
+    "NeptuneDBClusterPort": {
+      "Description": "Port for the Neptune cluster",
+      "Value": {
+        "Fn::GetAtt": [
+          "NeptuneDBCluster",
+          "Port"
+        ]
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${ApplicationID}-NeptuneDBClusterPort"
+        }
+      }
+    },
+    "EC2Client": {
+      "Description": "EC2 client Identifier",
+      "Value": {
+        "Ref": "NeptuneEC2ClientInstance"
+      }
+    },
+    "SSHAccess": {
+      "Description": "This is how you gain remote access to the EC2 client.",
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "ssh ec2-user@",
+            {
+              "Fn::GetAtt": [
+                "NeptuneEC2ClientInstance",
+                "PublicIp"
+              ]
+            },
+            " -i ",
+            {
+              "Ref": "EC2SSHKeyPairName"
+            },
+            ".pem"
+          ]
+        ]
+      }
+    },
+    "EC2SSHTunnelCommand": {
+      "Description": "Command to connect to the local web server on the EC2 in VPC, you create an SSH tunnel between your computer and the EC2 node. This is also known as port forwarding.",
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "ssh ec2-user@",
+            {
+              "Fn::GetAtt": [
+                "NeptuneEC2ClientInstance",
+                "PublicIp"
+              ]
+            },
+            " -i ",
+            {
+              "Ref": "EC2SSHKeyPairName"
+            },
+            ".pem -L localhost:8080:localhost:8080"
+          ]
+        ]
+      }
+    }
+  }
+}
