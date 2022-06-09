@@ -103,17 +103,26 @@ s3://$BUCKET_NAME/$PREFIX/
 
 ## References
 
-[1] Identity Graphs on AWS
-https://aws.amazon.com/neptune/identity-graphs-on-aws/
+[1] Identity Graphs on AWS - https://aws.amazon.com/neptune/identity-graphs-on-aws/
+
 [2] Building a customer identity graph with Amazon Neptune - https://aws.amazon.com/blogs/database/building-a-customer-identity-graph-with-amazon-neptune/
+
 [3] Data Modeling for Identity Graphs - https://github.com/aws/graph-notebook/blob/main/src/graph_notebook/notebooks/03-Sample-Applications/03-Identity-Graphs/02-Data-Modeling-for-Identity-Graphs.ipynb
+
 [4] Graph Data Modelling - https://github.com/aws-samples/aws-dbs-refarch-graph/tree/master/src/graph-data-modelling#graph-data-modelling
+
 [5] Reference Architectures for Graph Databases on AWS - https://github.com/aws-samples/aws-dbs-refarch-graph/
+
 [6] Data Models and Query Languages - https://github.com/aws-samples/aws-dbs-refarch-graph/tree/master/src/data-models-and-query-languages
+
 [7] Accessing Amazon Neptune from AWS Lambda Functions - https://aws-samples.github.io/aws-dbs-refarch-graph/src/accessing-from-aws-lambda/
+
 [8] Migrating from MySQL to Amazon Neptune using AWS Glue - https://github.com/aws-samples/amazon-neptune-samples/tree/master/gremlin/glue-neptune
+
 [9] Amazon Neptune Tools - https://github.com/awslabs/amazon-neptune-tools
+
 [10] Graph Computing - https://tinkerpop.apache.org/docs/current/reference/#graph-computing
+
 [11] Populating your graph in Amazon Neptune from a relational database using AWS Database Migration Service (DMS)
 
 * https://aws.amazon.com/blogs/database/populating-your-graph-in-amazon-neptune-from-a-relational-database-using-aws-database-migration-service-dms-part-1-setting-the-stage/
@@ -122,3 +131,4 @@ https://aws.amazon.com/neptune/identity-graphs-on-aws/
 * https://aws.amazon.com/blogs/database/populating-your-graph-in-amazon-neptune-from-a-relational-database-using-aws-database-migration-service-dms-part-4-putting-it-all-together/
 
 [12] Graph Notebook: easily query and visualize graphs - https://github.com/aws/graph-notebook
+
