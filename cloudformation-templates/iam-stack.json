@@ -263,7 +263,7 @@
 									"Effect": "Allow",
 									"Action": "sts:AssumeRole",
 									"Resource": {
-										"Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/GlueConnectToNeptuneRoleARN_*"
+										"Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/GlueConnectToNeptuneRole*"
 									}
 								}
 							]

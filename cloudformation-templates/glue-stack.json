@@ -1,0 +1,290 @@
+{
+	"Description": "AWS Glue resources for the Identity Graph PoC",
+	"Parameters": {
+		"ApplicationID": {
+			"Description": "Application ID",
+			"Type": "String",
+			"AllowedPattern": "[-_a-z0-9]+",
+			"MaxLength": 50,
+			"Default": "poc_identity_graph"
+		},
+		"InfrastructureID": {
+			"Description": "Infrastructure ID",
+			"Type": "String",
+			"AllowedPattern": "[-a-z0-9]+",
+			"MaxLength": 50,
+			"Default": "poc-identity-graph"
+		},
+		"S3SourceDatasetsPath": {
+			"Description": "S3 path for source datasets CVS files ( files to crawl)",
+			"Type": "String",
+			"AllowedPattern": "^s3://.*/$"
+		},
+		"NeptuneUsername": {
+			"Description": "Username for JDBC connection to Neptune DB cluster",
+			"Type": "String",
+			"Default": "neptune"
+		},
+		"NeptuneUserpassword": {
+			"Description": "Password for JDBC connection to Neptune DB cluster",
+			"Type": "String",
+			"Default": "neptune"
+		}
+	},
+	"Resources": {
+		"SourceDatabase": {
+			"Type": "AWS::Glue::Database",
+			"Properties": {
+				"DatabaseInput": {
+					"Name": {
+						"Fn::Sub": "database_${ApplicationID}"
+					}
+				},
+				"CatalogId": {
+					"Ref": "AWS::AccountId"
+				}
+			}
+		},
+		"NeptuneConnection": {
+			"Type": "AWS::Glue::Connection",
+			"Properties": {
+				"ConnectionInput": {
+					"Description": "Neptune Connection",
+					"ConnectionType": "JDBC",
+					"MatchCriteria": [
+
+					],
+					"PhysicalConnectionRequirements": {
+						"AvailabilityZone": {
+							"Fn::Select": [
+								0,
+								{
+									"Fn::GetAZs": ""
+								}
+							]
+						},
+						"SecurityGroupIdList": [
+							{
+								"Fn::ImportValue": {
+									"Fn::Sub": "${InfrastructureID}-DefaultSecurityGroup"
+								}
+							},
+							{
+								"Fn::ImportValue": {
+									"Fn::Sub": "${InfrastructureID}-NeptuneSecurityGroup"
+								}
+							}
+						],
+						"SubnetId": {
+							"Fn::Select": [
+								0,
+								{
+									"Fn::Split": [
+										",",
+										{
+											"Fn::ImportValue": {
+												"Fn::Sub": "${InfrastructureID}-PrivateSubnetIDs"
+											}
+										}
+									]
+								}
+							]
+						}
+					},
+					"ConnectionProperties": {
+						"USERNAME": { 
+							"Ref": "NeptuneUsername"
+						},
+						"JDBC_ENFORCE_SSL": "true",
+						"PASSWORD": { 
+							"Ref": "NeptuneUserpassword"
+						},
+						"JDBC_CONNECTION_URL": {
+							"Fn::Join": [
+								"",
+								[
+									"jdbc:",
+									{
+										"Fn::ImportValue": {
+											"Fn::Sub": "${InfrastructureID}-NeptuneGremlinEndpoint"
+										}
+									}
+								]
+							]
+						}
+					},
+					"Name": {
+						"Fn::Sub": "neptune-connection-${InfrastructureID}"
+					}
+				},
+				"CatalogId": {
+					"Ref": "AWS::AccountId"
+				}
+			}
+		},
+		"SourceDatabaseCrawler": {
+			"Type": "AWS::Glue::Crawler",
+			"Properties": {
+				"Role": {
+					"Fn::ImportValue": {
+						"Fn::Sub": "${InfrastructureID}-GlueRoleARN"
+					}
+				},
+				"Description": "Source datasets crawler",
+				"DatabaseName": {
+					"Ref": "SourceDatabase"
+				},
+				"Targets": {
+					"S3Targets": [
+						{ 
+							"Path": { 
+								"Ref": "S3SourceDatasetsPath"
+							}, 
+							"Exclusions": [] 
+						}
+					]
+				},
+				"TablePrefix": {
+					"Fn::Sub": "${ApplicationID}_"
+				},
+				"Name": {
+					"Fn::Sub": "source-datasets-crawler-${InfrastructureID}"
+				},
+				"RecrawlPolicy": { 
+					"RecrawlBehavior": "CRAWL_EVERYTHING" 
+				},
+				"SchemaChangePolicy": { 
+					"UpdateBehavior": "UPDATE_IN_DATABASE", 
+					"DeleteBehavior": "DEPRECATE_IN_DATABASE" 
+				}
+			}
+		},
+		"GlueConnectToNeptuneRole": {
+			"Type": "AWS::IAM::Role",
+			"Properties": {
+				"AssumeRolePolicyDocument": {
+					"Version": "2012-10-17",
+					"Statement": [
+						{
+							"Effect": "Allow",
+							"Principal": {
+								"AWS": {
+									"Fn::ImportValue": {
+										"Fn::Sub": "${InfrastructureID}-GlueRoleARN"
+									}
+								}
+							},
+							"Action": "sts:AssumeRole"
+						}
+					]
+				},
+				"Policies": [
+					{
+						"PolicyName": { 
+							"Fn::Sub": "GlueConnectToNeptunePolicy-${InfrastructureID}" 
+						},
+						"PolicyDocument": {
+							"Version": "2012-10-17",
+							"Statement": [
+								{
+									"Effect": "Allow",
+									"Action": "neptune-db:connect",
+									"Resource": {
+										"Fn::Sub": [
+											"arn:${AWS::Partition}:neptune-db:${AWS::Region}:${AWS::AccountId}:${DBClusterResourceID}/*",
+											{
+												"DBClusterResourceID": {
+													"Fn::ImportValue": {
+														"Fn::Sub": "${InfrastructureID}-NeptuneDBClusterResourceID"
+													}
+												}
+											}
+										]
+									}
+								}
+							]
+						}
+					}
+				],
+				"MaxSessionDuration": 43200,
+				"RoleName": {
+					"Fn::Join": [ 
+						"", 
+						[ 
+							"GlueConnectToNeptuneRole-", 
+							{ 
+								"Fn::Sub": "${InfrastructureID}-" 
+							},
+							{ 
+								"Ref": "AWS::Region" 
+							}
+						]
+					]
+				},
+				"Tags": [
+					{
+						"Key": "Environment",
+						"Value": "ab3" 
+					},
+					{ 
+						"Key": "auto-delete", 
+						"Value": "never" 
+					},
+					{ 
+						"Key": "CreatedBy", 
+						"Value": "chvezk" 
+					}
+				]
+			}
+		}
+	},
+	"Outputs": {
+		"GlueConnectToNeptuneRoleARN": {
+			"Description": "Glue IAM connect to Neptune role ARN",
+			"Value": {
+				"Fn::GetAtt": [
+					"GlueConnectToNeptuneRole",
+					"Arn"
+				]
+			},
+			"Export": {
+				"Name": {
+					"Fn::Sub": "${InfrastructureID}-GlueConnectToNeptuneRoleARN"
+				}
+			}
+		},
+		"SourceDatabaseCrawlerID": { 
+			"Description": "Glue crawler identifier for source database",
+			"Value": { 
+				"Ref": "SourceDatabaseCrawler" 
+			},
+			"Export": { 
+				"Name": { 
+					"Fn::Sub": "${InfrastructureID}-SourceDatabaseCrawlerID" 
+				}
+			}
+		},
+		"SourceDatabaseID": { 
+			"Description": "Glue database identifier for source datasets",
+			"Value": { 
+				"Ref": "SourceDatabase" 
+			},
+			"Export": { 
+				"Name": { 
+					"Fn::Sub": "${InfrastructureID}-SourceDatabaseID" 
+				}
+			}
+		},
+		"NeptuneConnectionID": { 
+			"Description": "Glue connection identifier for Neptune DB cluster",
+			"Value": { 
+				"Ref": "NeptuneConnection" 
+			},
+			"Export": { 
+				"Name": { 
+					"Fn::Sub": "${InfrastructureID}-NeptuneConnectionID" 
+				}
+			}
+		}
+	}
+}
