@@ -78,6 +78,8 @@ Resources:
       SecurityGroupIds:
         - !ImportValue
           'Fn::Sub': '${InfrastructureID}-NeptuneSecurityGroup'
+        - !ImportValue
+          'Fn::Sub': '${InfrastructureID}-NeptuneClientSecurityGroup'
       SubnetId: !Select
         - 0
         - Fn::Split:
