@@ -1,0 +1,151 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: Neptune Notebook for the Identity Graph PoC.
+
+Parameters:
+  InfrastructureID:
+    Description: Infrastructure ID.
+    Type: String
+    AllowedPattern: ^[-a-z0-9]+$
+    Default: 'poc-identity-graph'
+
+  ApplicationID:
+    Description: Application ID.
+    Type: String
+    AllowedPattern: ^[-a-z0-9]+$
+    Default: 'poc-identity-graph'
+
+  NotebookInstanceType:
+    Description: The notebook instance type.
+    Type: String
+    Default: ml.m5.xlarge
+    AllowedValues:
+    - ml.t2.medium
+    - ml.t2.large
+    - ml.t2.xlarge
+    - ml.t2.2xlarge
+    - ml.t3.2xlarge
+    - ml.t3.large
+    - ml.t3.medium
+    - ml.t3.xlarge
+    - ml.m4.xlarge
+    - ml.m4.2xlarge
+    - ml.m4.4xlarge
+    - ml.m4.10xlarge
+    - ml.m4.16xlarge
+    - ml.m5.12xlarge
+    - ml.m5.24xlarge
+    - ml.m5.2xlarge
+    - ml.m5.4xlarge
+    - ml.m5.xlarge
+    - ml.p2.16xlarge
+    - ml.p2.8xlarge
+    - ml.p2.xlarge
+    - ml.p3.16xlarge
+    - ml.p3.2xlarge
+    - ml.p3.8xlarge
+    - ml.c4.2xlarge
+    - ml.c4.4xlarge
+    - ml.c4.8xlarge
+    - ml.c4.xlarge
+    - ml.c5.18xlarge
+    - ml.c5.2xlarge
+    - ml.c5.4xlarge
+    - ml.c5.9xlarge
+    - ml.c5.xlarge
+    - ml.c5d.18xlarge
+    - ml.c5d.2xlarge
+    - ml.c5d.4xlarge
+    - ml.c5d.9xlarge
+    - ml.c5d.xlarge
+    ConstraintDescription: Must be a valid SageMaker instance type.
+
+  NeptuneClusterPort:
+    Description: 'OPTIONAL: The Port of an existing Neptune cluster (default 8182).'
+    Type: String
+    Default: '8182'
+
+Resources:
+  NeptuneNotebookInstance:
+    Type: AWS::SageMaker::NotebookInstance
+    Properties:
+      NotebookInstanceName: !Join
+                          - ''
+                          - - 'neptune-notebook-'
+                            - !Sub '${ApplicationID}'
+      InstanceType:
+        Ref: NotebookInstanceType
+      SecurityGroupIds:
+        - !ImportValue
+          'Fn::Sub': '${InfrastructureID}-NeptuneSecurityGroup'
+      SubnetId: !Select
+        - 0
+        - Fn::Split:
+          - ","
+          - !ImportValue
+            'Fn::Sub': '${InfrastructureID}-PrivateSubnetIDs'
+      RoleArn: !ImportValue
+        'Fn::Sub': '${InfrastructureID}-SageMakerExecutionRoleARN'
+      LifecycleConfigName:
+        Fn::GetAtt:
+        - NeptuneNotebookInstanceLifecycleConfig
+        - NotebookInstanceLifecycleConfigName
+      Tags:
+        - Key: 'Environment'
+          Value: 'ab3'
+        - Key: 'auto-delete'
+          Value: 'never'
+        - Key: 'CreatedBy'
+          Value: 'chvezk'
+
+  NeptuneNotebookInstanceLifecycleConfig:
+    Type: AWS::SageMaker::NotebookInstanceLifecycleConfig
+    Properties:
+      OnStart:
+      - Content:
+          Fn::Base64:
+            Fn::Join:
+            - ''
+            - - "#!/bin/bash\n"
+              - sudo -u ec2-user -i << 'EOF'
+              - "\n"
+              - echo 'export GRAPH_NOTEBOOK_AUTH_MODE=
+              - "DEFAULT' >> ~/.bashrc\n"
+              - echo 'export GRAPH_NOTEBOOK_HOST=
+              - !ImportValue
+                'Fn::Sub': '${ApplicationID}-NeptuneDBClusterEndpoint'
+              - "' >> ~/.bashrc\n"
+              - echo 'export GRAPH_NOTEBOOK_PORT=
+              - !Ref NeptuneClusterPort
+              - "' >> ~/.bashrc\n"
+              - echo 'export NEPTUNE_LOAD_FROM_S3_ROLE_ARN=
+              - "' >> ~/.bashrc\n"
+              - echo 'export AWS_REGION=
+              - !Ref AWS::Region
+              - "' >> ~/.bashrc\n"
+              - aws s3 cp s3://aws-neptune-notebook/graph_notebook.tar.gz /tmp/graph_notebook.tar.gz
+              - "\n"
+              - rm -rf /tmp/graph_notebook
+              - "\n"
+              - tar -zxvf /tmp/graph_notebook.tar.gz -C /tmp
+              - "\n"
+              - /tmp/graph_notebook/install.sh
+              - "\n"
+              - EOF
+
+Outputs:
+  NeptuneNotebookInstanceARN:
+    Description: Neptune Notebook Instance ARN
+    Value:
+      !Ref NeptuneNotebookInstance
+    Export:
+      Name:
+        !Sub '${ApplicationID}-NeptuneNotebookInstanceARN'
+
+  NeptuneNotebookInstanceID:
+    Description: Neptune Notebook identifier
+    Value:
+      !GetAtt NeptuneNotebookInstance.NotebookInstanceName
+    Export:
+      Name:
+        !Sub '${ApplicationID}-NeptuneNotebookInstanceID'
