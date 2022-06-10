@@ -146,13 +146,22 @@ def create_transactional_dataset():
         raise e
 
 # Generate mock data for clickstream source dataset
-def generate_clickstream_record(session_id, timestamp, platform):
+def generate_clickstream_record(session, user, timestamp, platform):
     event_types = [ 'Purchase', 'Search', 'ProductView', 'Whishlist', 
         'PageView', 'DiscardCard', 'CompareProducts', 'SingIn', 'SingUp' ]
     apps = [ 'ecommerce', 'travel', 'health_providers', 'health_services' ]
     row = []
+    
+    # Faker provider to randomize across unique user names
+    username_id_provider = DynamicProvider(
+        provider_name = "username_id",
+        elements = known_usernames
+        )
+    # Adding custom providers to global Faker
+    fake.add_provider(username_id_provider)
+    
     try:
-        session_id = ( session_id if session_id 
+        session_id = ( session if session 
             else fake.unique.uuid4() )
         end_timestamp = ( timestamp if timestamp 
             else fake.past_datetime(start_date='-10y') )
@@ -165,17 +174,20 @@ def generate_clickstream_record(session_id, timestamp, platform):
         canonical_url = fake.url()
         domain_name = fake.domain_name()
         app_id = fake.word(ext_word_list=apps)
-        device_id = ( 
-            fake.hexify('^^^^^^^^^^^^^^^^',True) if platform == 'mobile' 
-            else '' )
+        if platform == 'mobile':
+            device_id = fake.hexify('^^^^^^^^^^^^^^^^',True)
+            user_name = fake.username_id()
+        else:
+            device_id = ''
+            user_name = user
         events = randint(2,30)
         start_event = fake.word(ext_word_list=event_types)
         end_event = fake.word(ext_word_list=event_types)
         user_agent = fake.user_agent()
         row = [ session_id, client_ip, client_platform, canonical_url, 
-            domain_name, app_id, device_id, events, start_timestamp, 
-            start_event, end_timestamp, end_event, session_duration_sec, 
-            user_agent ]
+            domain_name, app_id, device_id, user_name, events, 
+            start_timestamp, start_event, end_timestamp, end_event, 
+            session_duration_sec, user_agent ]
     except Exception as e:
         print(f"Unexpected exception : {str(e)}")
         raise e
@@ -217,9 +229,9 @@ def create_cookie_clickstream_datasets():
     cookie_fields = [ 'cookie_id', 'session_id', 'last_action', 'user_name', 
         'conversion_id' ]
     clickstream_fields = [ 'session_id', 'client_ip', 'client_platform', 
-        'canonical_url', 'domain_name', 'app_id', 'device_id', 'events', 
-        'start_timestamp', 'start_event', 'end_timestamp', 'end_event', 
-        'session_duration_sec', 'user-agent' ]
+        'canonical_url', 'domain_name', 'app_id', 'device_id', 'user_name', 
+        'events', 'start_timestamp', 'start_event', 'end_timestamp', 
+        'end_event', 'session_duration_sec', 'user-agent' ]
     cookie_row = []
     clickstream_row = []
     
@@ -240,7 +252,8 @@ def create_cookie_clickstream_datasets():
                 cookie_row = generate_cookie_record()
                 if cookie_row:
                     clickstream_row = generate_clickstream_record(
-                        session_id=cookie_row[1], 
+                        session=cookie_row[1],
+                        user=cookie_row[3],
                         timestamp=cookie_row[2],
                         platform='web'
                         )
@@ -251,7 +264,8 @@ def create_cookie_clickstream_datasets():
                         print('Clickstream record: {0}'.format(clickstream_row))
             else:               # Anything else: is a mobile client
                 clickstream_row = generate_clickstream_record(
-                    session_id=None,
+                    session=None,
+                    user=None,
                     timestamp=None,
                     platform='mobile'
                     )
