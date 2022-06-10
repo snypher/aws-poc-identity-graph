@@ -74,7 +74,7 @@ CSV files with raw data will be stored into the `datasets` S3 prefix
 
 ```
 BUCKET_NAME="poc-identity-graph-733157031621"
-PREFIX="datasets"
+PREFIX="datasets/sources/initial"
 aws s3 cp first_party_data_full.csv s3://$BUCKET_NAME/$PREFIX/first_party/
 aws s3 cp cookie_data_full.csv s3://$BUCKET_NAME/$PREFIX/cookie/
 aws s3 cp clickstream_data_full.csv s3://$BUCKET_NAME/$PREFIX/clickstream/
