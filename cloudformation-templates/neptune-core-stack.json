@@ -696,11 +696,17 @@
                 "\n",
                 "yum -y remove java-1.7.0-openjdk",
                 "\n",
+                "yum -y install jq",
+                "\n",
+                "yum -y install nc",
+                "\n",
                 "cur_dir=$PWD",
                 "\n",
                 "cd /home/ec2-user/",
                 "\n",
                 "pip install --upgrade awscli",
+                "\n",
+                "pip3 install --upgrade awscurl",
                 "\n",
                 {
                   "Fn::If": [
