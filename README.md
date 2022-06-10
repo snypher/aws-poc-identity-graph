@@ -121,14 +121,10 @@ s3://$BUCKET_NAME/$PREFIX/
 
 [9] Amazon Neptune Tools - https://github.com/awslabs/amazon-neptune-tools
 
-[10] Graph Computing - https://tinkerpop.apache.org/docs/current/reference/#graph-computing
+[10] Faker: A Python package that generates fake data - https://faker.readthedocs.io/en/master/
 
-[11] Populating your graph in Amazon Neptune from a relational database using AWS Database Migration Service (DMS)
+[11] Neptune Python Utils: A Python 3 library that simplifies using Gremlin-Python (https://pypi.org/project/gremlinpython/) to connect to Amazon Neptune - https://github.com/awslabs/amazon-neptune-tools/tree/master/neptune-python-utils#neptune-python-utils
 
-* https://aws.amazon.com/blogs/database/populating-your-graph-in-amazon-neptune-from-a-relational-database-using-aws-database-migration-service-dms-part-1-setting-the-stage/
-* https://aws.amazon.com/blogs/database/populating-your-graph-in-amazon-neptune-from-a-relational-database-using-aws-database-migration-service-dms-part-2-designing-the-property-graph-model/
-* https://aws.amazon.com/blogs/database/populating-your-graph-in-amazon-neptune-from-a-relational-database-using-aws-database-migration-service-dms-part-3-designing-the-rdf-model/
-* https://aws.amazon.com/blogs/database/populating-your-graph-in-amazon-neptune-from-a-relational-database-using-aws-database-migration-service-dms-part-4-putting-it-all-together/
+[12] Graph Computing - https://tinkerpop.apache.org/docs/current/reference/#graph-computing
 
-[12] Graph Notebook: easily query and visualize graphs - https://github.com/aws/graph-notebook
-
+[13] Graph Notebook: easily query and visualize graphs - https://github.com/aws/graph-notebook
