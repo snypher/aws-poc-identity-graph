@@ -85,7 +85,7 @@ def create_first_party_dataset():
 def create_transactional_dataset():
     filename = 'transactional_data_full.csv'
     fields = [ 'product_id', 'product_name', 'purchased_date', 
-        'product_category', 'customer_id', 'customer_email' ]
+        'product_category', 'customer_id', 'customer_email', 'reward_points' ]
     brands = [ 'Samsung', 'LG', 'Sony', 'Motorola', 'BenQ', 'Apple' ]
     product = [ 'TV', 'Cell Phone', 'Tablet', 'Monitor', 
         'Computer', 'Headphones', 'Smartwatch', 'GPS' ]
@@ -131,8 +131,9 @@ def create_transactional_dataset():
             else:
                 customer_email = ( fake.email() if fake.pybool()
                     else fake.safe_email() )
+            reward_points = randint(10,100)
             row = [ product_id, product_name, purchased_date, 
-                product_category, customer_id, customer_email ]
+                product_category, customer_id, customer_email, reward_points ]
             transactional_df.loc[i] = row
             if args.debug: print('Transactional record: {0}'.format(row))
         
@@ -215,8 +216,9 @@ def generate_cookie_record():
             conversion_id = ( 
                 fake.pystr_format('x{{random_int}},x{{random_int}}', None) 
                 if fake.pybool() else '' )
+            session_duration_sec = randint(30,1800)
             row = [ cookie_id, session_id, last_action, 
-                user_name, conversion_id ]
+                user_name, conversion_id, session_duration_sec ]
     except Exception as e:
         print(f"Unexpected exception : {str(e)}")
         raise e
@@ -227,7 +229,7 @@ def create_cookie_clickstream_datasets():
     cookies_filename = 'cookie_data_full.csv'
     clickstream_filename = 'clickstream_data_full.csv'
     cookie_fields = [ 'cookie_id', 'session_id', 'last_action', 'user_name', 
-        'conversion_id' ]
+        'conversion_id', 'session_duration_sec' ]
     clickstream_fields = [ 'session_id', 'client_ip', 'client_platform', 
         'canonical_url', 'domain_name', 'app_id', 'device_id', 'user_name', 
         'events', 'start_timestamp', 'start_event', 'end_timestamp', 
