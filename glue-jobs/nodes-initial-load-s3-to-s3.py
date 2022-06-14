@@ -14,26 +14,11 @@ def add_label_to_user_agent(glueContext, dfc) -> DynamicFrameCollection:
     )
 
     df = dfc.select(list(dfc.keys())[0])
-    dataframe = df.toDF().dropDuplicates()
+    df_withlabel = GlueGremlinCsvTransforms.addLabel(df, "UserAgent")
+    dataframe = df_withlabel.toDF().dropDuplicates().repartition(1)
     df_deduplicated = DynamicFrame.fromDF(dataframe, glueContext, "df_deduplicated")
-    df_withlabel = GlueGremlinCsvTransforms.addLabel(df_deduplicated, "UserAgent")
     return DynamicFrameCollection(
-        {"user_agent_vertex_transform": df_withlabel}, glueContext
-    )
-
-
-# Script generated for node product_category_vertex_transform
-def add_label_to_product_category(glueContext, dfc) -> DynamicFrameCollection:
-    from neptune_python_utils.glue_gremlin_csv_transforms import (
-        GlueGremlinCsvTransforms,
-    )
-
-    df = dfc.select(list(dfc.keys())[0])
-    dataframe = df.toDF().dropDuplicates()
-    df_deduplicated = DynamicFrame.fromDF(dataframe, glueContext, "df_deduplicated")
-    df_withlabel = GlueGremlinCsvTransforms.addLabel(df_deduplicated, "ProductCategory")
-    return DynamicFrameCollection(
-        {"product_category_vertex_transform": df_withlabel}, glueContext
+        {"user_agent_vertex_transform": df_deduplicated}, glueContext
     )
 
 
@@ -63,6 +48,36 @@ def add_label_to_external_id(glueContext, dfc) -> DynamicFrameCollection:
     )
 
 
+# Script generated for node client_ip_vertex_transform
+def add_label_to_client_ip(glueContext, dfc) -> DynamicFrameCollection:
+    from neptune_python_utils.glue_gremlin_csv_transforms import (
+        GlueGremlinCsvTransforms,
+    )
+
+    df = dfc.select(list(dfc.keys())[0])
+    df_withlabel = GlueGremlinCsvTransforms.addLabel(df, "ClientIP")
+    dataframe = df_withlabel.toDF().dropDuplicates().repartition(1)
+    df_deduplicated = DynamicFrame.fromDF(dataframe, glueContext, "df_deduplicated")
+    return DynamicFrameCollection(
+        {"client_ip_vertex_transform": df_deduplicated}, glueContext
+    )
+
+
+# Script generated for node phone_number_vertex_transform
+def add_label_to_phone_number(glueContext, dfc) -> DynamicFrameCollection:
+    from neptune_python_utils.glue_gremlin_csv_transforms import (
+        GlueGremlinCsvTransforms,
+    )
+
+    df = dfc.select(list(dfc.keys())[0])
+    df_withlabel = GlueGremlinCsvTransforms.addLabel(df, "PhoneNumber")
+    dataframe = df_withlabel.toDF().dropDuplicates().repartition(1)
+    df_deduplicated = DynamicFrame.fromDF(dataframe, glueContext, "df_deduplicated")
+    return DynamicFrameCollection(
+        {"phone_number_vertex_transform": df_deduplicated}, glueContext
+    )
+
+
 # Script generated for node loyalty_vertex_transform
 def add_label_to_loyalty(glueContext, dfc) -> DynamicFrameCollection:
     from neptune_python_utils.glue_gremlin_csv_transforms import (
@@ -70,11 +85,26 @@ def add_label_to_loyalty(glueContext, dfc) -> DynamicFrameCollection:
     )
 
     df = dfc.select(list(dfc.keys())[0])
-    dataframe = df.toDF().dropDuplicates()
+    df_withlabel = GlueGremlinCsvTransforms.addLabel(df, "LoyaltyLevel")
+    dataframe = df_withlabel.toDF().dropDuplicates().repartition(1)
     df_deduplicated = DynamicFrame.fromDF(dataframe, glueContext, "df_deduplicated")
-    df_withlabel = GlueGremlinCsvTransforms.addLabel(df_deduplicated, "LoyaltyLevel")
     return DynamicFrameCollection(
-        {"loyalty_vertex_transform": df_withlabel}, glueContext
+        {"loyalty_vertex_transform": df_deduplicated}, glueContext
+    )
+
+
+# Script generated for node city_vertex_transform
+def add_label_to_city(glueContext, dfc) -> DynamicFrameCollection:
+    from neptune_python_utils.glue_gremlin_csv_transforms import (
+        GlueGremlinCsvTransforms,
+    )
+
+    df = dfc.select(list(dfc.keys())[0])
+    df_withlabel = GlueGremlinCsvTransforms.addLabel(df, "City")
+    dataframe = df_withlabel.toDF().dropDuplicates().repartition(1)
+    df_deduplicated = DynamicFrame.fromDF(dataframe, glueContext, "df_deduplicated")
+    return DynamicFrameCollection(
+        {"city_vertex_transform": df_deduplicated}, glueContext
     )
 
 
@@ -102,34 +132,6 @@ def add_label_to_username(glueContext, dfc) -> DynamicFrameCollection:
     )
 
 
-# Script generated for node city_vertex_transform
-def add_label_to_city(glueContext, dfc) -> DynamicFrameCollection:
-    from neptune_python_utils.glue_gremlin_csv_transforms import (
-        GlueGremlinCsvTransforms,
-    )
-
-    df = dfc.select(list(dfc.keys())[0])
-    dataframe = df.toDF().dropDuplicates()
-    df_deduplicated = DynamicFrame.fromDF(dataframe, glueContext, "df_deduplicated")
-    df_withlabel = GlueGremlinCsvTransforms.addLabel(df_deduplicated, "City")
-    return DynamicFrameCollection({"city_vertex_transform": df_withlabel}, glueContext)
-
-
-# Script generated for node device_id_vertex_transform
-def add_label_to_device_id(glueContext, dfc) -> DynamicFrameCollection:
-    from neptune_python_utils.glue_gremlin_csv_transforms import (
-        GlueGremlinCsvTransforms,
-    )
-
-    df = dfc.select(list(dfc.keys())[0])
-    dataframe = df.toDF().dropDuplicates()
-    df_deduplicated = DynamicFrame.fromDF(dataframe, glueContext, "df_deduplicated")
-    df_withlabel = GlueGremlinCsvTransforms.addLabel(df_deduplicated, "DeviceID")
-    return DynamicFrameCollection(
-        {"device_id_vertex_transform": df_withlabel}, glueContext
-    )
-
-
 # Script generated for node postcode_vertex_transform
 def add_label_to_postcode(glueContext, dfc) -> DynamicFrameCollection:
     from neptune_python_utils.glue_gremlin_csv_transforms import (
@@ -137,26 +139,26 @@ def add_label_to_postcode(glueContext, dfc) -> DynamicFrameCollection:
     )
 
     df = dfc.select(list(dfc.keys())[0])
-    dataframe = df.toDF().dropDuplicates()
+    df_withlabel = GlueGremlinCsvTransforms.addLabel(df, "PostCode")
+    dataframe = df_withlabel.toDF().dropDuplicates().repartition(1)
     df_deduplicated = DynamicFrame.fromDF(dataframe, glueContext, "df_deduplicated")
-    df_withlabel = GlueGremlinCsvTransforms.addLabel(df_deduplicated, "PostCode")
     return DynamicFrameCollection(
-        {"postcode_vertex_transform": df_withlabel}, glueContext
+        {"postcode_vertex_transform": df_deduplicated}, glueContext
     )
 
 
-# Script generated for node phone_number_vertex_transform
-def add_label_to_phone_number(glueContext, dfc) -> DynamicFrameCollection:
+# Script generated for node domain_name_vertex_transform
+def add_label_to_domain_name(glueContext, dfc) -> DynamicFrameCollection:
     from neptune_python_utils.glue_gremlin_csv_transforms import (
         GlueGremlinCsvTransforms,
     )
 
     df = dfc.select(list(dfc.keys())[0])
-    dataframe = df.toDF().dropDuplicates()
+    df_withlabel = GlueGremlinCsvTransforms.addLabel(df, "DomainName")
+    dataframe = df_withlabel.toDF().dropDuplicates().repartition(1)
     df_deduplicated = DynamicFrame.fromDF(dataframe, glueContext, "df_deduplicated")
-    df_withlabel = GlueGremlinCsvTransforms.addLabel(df_deduplicated, "PhoneNumber")
     return DynamicFrameCollection(
-        {"phone_number_vertex_transform": df_withlabel}, glueContext
+        {"domain_name_vertex_transform": df_deduplicated}, glueContext
     )
 
 
@@ -167,11 +169,42 @@ def add_label_to_country(glueContext, dfc) -> DynamicFrameCollection:
     )
 
     df = dfc.select(list(dfc.keys())[0])
-    dataframe = df.toDF().dropDuplicates()
+    df_withlabel = GlueGremlinCsvTransforms.addLabel(df, "Country")
+    dataframe = df_withlabel.toDF().dropDuplicates().repartition(1)
     df_deduplicated = DynamicFrame.fromDF(dataframe, glueContext, "df_deduplicated")
-    df_withlabel = GlueGremlinCsvTransforms.addLabel(df_deduplicated, "Country")
     return DynamicFrameCollection(
-        {"country_vertex_transform": df_withlabel}, glueContext
+        {"country_vertex_transform": df_deduplicated}, glueContext
+    )
+
+
+# Script generated for node device_id_vertex_transform
+def add_label_to_device_id(glueContext, dfc) -> DynamicFrameCollection:
+    from neptune_python_utils.glue_gremlin_csv_transforms import (
+        GlueGremlinCsvTransforms,
+    )
+
+    df = dfc.select(list(dfc.keys())[0])
+    df = DropNullFields.apply(frame=df)
+    df_withlabel = GlueGremlinCsvTransforms.addLabel(df, "DeviceID")
+    dataframe = df_withlabel.toDF().dropDuplicates().repartition(1)
+    df_deduplicated = DynamicFrame.fromDF(dataframe, glueContext, "df_deduplicated")
+    return DynamicFrameCollection(
+        {"device_id_vertex_transform": df_deduplicated}, glueContext
+    )
+
+
+# Script generated for node product_category_vertex_transform
+def add_label_to_product_category(glueContext, dfc) -> DynamicFrameCollection:
+    from neptune_python_utils.glue_gremlin_csv_transforms import (
+        GlueGremlinCsvTransforms,
+    )
+
+    df = dfc.select(list(dfc.keys())[0])
+    df_withlabel = GlueGremlinCsvTransforms.addLabel(df, "ProductCategory")
+    dataframe = df_withlabel.toDF().dropDuplicates().repartition(1)
+    df_deduplicated = DynamicFrame.fromDF(dataframe, glueContext, "df_deduplicated")
+    return DynamicFrameCollection(
+        {"product_category_vertex_transform": df_deduplicated}, glueContext
     )
 
 
@@ -188,21 +221,6 @@ def add_label_to_cookie(glueContext, dfc) -> DynamicFrameCollection:
     )
 
 
-# Script generated for node domain_name_vertex_transform
-def add_label_to_domain_name(glueContext, dfc) -> DynamicFrameCollection:
-    from neptune_python_utils.glue_gremlin_csv_transforms import (
-        GlueGremlinCsvTransforms,
-    )
-
-    df = dfc.select(list(dfc.keys())[0])
-    dataframe = df.toDF().dropDuplicates()
-    df_deduplicated = DynamicFrame.fromDF(dataframe, glueContext, "df_deduplicated")
-    df_withlabel = GlueGremlinCsvTransforms.addLabel(df_deduplicated, "DomainName")
-    return DynamicFrameCollection(
-        {"domain_name_vertex_transform": df_withlabel}, glueContext
-    )
-
-
 # Script generated for node session_vertex_transform
 def add_label_to_session(glueContext, dfc) -> DynamicFrameCollection:
     from neptune_python_utils.glue_gremlin_csv_transforms import (
@@ -213,21 +231,6 @@ def add_label_to_session(glueContext, dfc) -> DynamicFrameCollection:
     df_withlabel = GlueGremlinCsvTransforms.addLabel(df, "SessionID")
     return DynamicFrameCollection(
         {"session_vertex_transform": df_withlabel}, glueContext
-    )
-
-
-# Script generated for node client_ip_vertex_transform
-def add_label_to_client_ip(glueContext, dfc) -> DynamicFrameCollection:
-    from neptune_python_utils.glue_gremlin_csv_transforms import (
-        GlueGremlinCsvTransforms,
-    )
-
-    df = dfc.select(list(dfc.keys())[0])
-    dataframe = df.toDF().dropDuplicates()
-    df_deduplicated = DynamicFrame.fromDF(dataframe, glueContext, "df_deduplicated")
-    df_withlabel = GlueGremlinCsvTransforms.addLabel(df_deduplicated, "ClientIP")
-    return DynamicFrameCollection(
-        {"client_ip_vertex_transform": df_withlabel}, glueContext
     )
 
 

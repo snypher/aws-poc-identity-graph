@@ -179,7 +179,7 @@ def generate_clickstream_record(session, user, timestamp, platform):
             device_id = fake.hexify('^^^^^^^^^^^^^^^^',True)
             user_name = fake.username_id()
         else:
-            device_id = ''
+            device_id = 'null'
             user_name = user
         events = randint(2,30)
         start_event = fake.word(ext_word_list=event_types)
@@ -212,10 +212,10 @@ def generate_cookie_record():
             session_id = fake.unique.uuid4()
             last_action = fake.past_datetime(start_date='-10y')
             user_name = ( fake.username_id() if fake.pybool() 
-                else '' )   # True/False: authenticated/anonymous
+                else 'null' )   # True/False: authenticated/anonymous
             conversion_id = ( 
                 fake.pystr_format('x{{random_int}},x{{random_int}}', None) 
-                if fake.pybool() else '' )
+                if fake.pybool() else 'null' )
             session_duration_sec = randint(30,1800)
             row = [ cookie_id, session_id, last_action, 
                 user_name, conversion_id, session_duration_sec ]
