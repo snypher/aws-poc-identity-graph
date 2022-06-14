@@ -85,7 +85,7 @@ def create_first_party_dataset():
 def create_transactional_dataset():
     filename = 'transactional_data_full.csv'
     fields = [ 'product_id', 'product_name', 'purchased_date', 
-        'product_category', 'customer_id', 'customer_email', 'reward_points' ]
+        'product_category', 'customer_id', 'reward_points' ]
     brands = [ 'Samsung', 'LG', 'Sony', 'Motorola', 'BenQ', 'Apple' ]
     product = [ 'TV', 'Cell Phone', 'Tablet', 'Monitor', 
         'Computer', 'Headphones', 'Smartwatch', 'GPS' ]
@@ -124,16 +124,13 @@ def create_transactional_dataset():
             purchased_date = fake.past_date(start_date='-10y')
             product_category = fake.word(ext_word_list=categories)
             customer_id = ''
-            customer_email = ''
-            if fake.pybool():
-                customer_id = ( fake.external_id() if fake.pybool()
-                    else fake.ssn() )
-            else:
-                customer_email = ( fake.email() if fake.pybool()
-                    else fake.safe_email() )
+            if fake.pybool():   # True: customer provided an external Id
+                customer_id = fake.external_id()
+            else:   # Anything else: customer provided an email
+                customer_id = fake.email()
             reward_points = randint(10,100)
             row = [ product_id, product_name, purchased_date, 
-                product_category, customer_id, customer_email, reward_points ]
+                product_category, customer_id, reward_points ]
             transactional_df.loc[i] = row
             if args.debug: print('Transactional record: {0}'.format(row))
         
