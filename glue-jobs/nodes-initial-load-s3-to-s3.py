@@ -6,6 +6,22 @@ from awsglue.context import GlueContext
 from awsglue.job import Job
 from awsglue.dynamicframe import DynamicFrameCollection
 from awsglue.dynamicframe import DynamicFrame
+import re
+
+# Script generated for node device_id_vertex_transform
+def add_label_to_device_id(glueContext, dfc) -> DynamicFrameCollection:
+    from neptune_python_utils.glue_gremlin_csv_transforms import (
+        GlueGremlinCsvTransforms,
+    )
+
+    df = dfc.select(list(dfc.keys())[0])
+    df_withlabel = GlueGremlinCsvTransforms.addLabel(df, "DeviceID")
+    dataframe = df_withlabel.toDF().dropDuplicates().repartition(1)
+    df_deduplicated = DynamicFrame.fromDF(dataframe, glueContext, "df_deduplicated")
+    return DynamicFrameCollection(
+        {"device_id_vertex_transform": df_deduplicated}, glueContext
+    )
+
 
 # Script generated for node user_agent_vertex_transform
 def add_label_to_user_agent(glueContext, dfc) -> DynamicFrameCollection:
@@ -174,22 +190,6 @@ def add_label_to_country(glueContext, dfc) -> DynamicFrameCollection:
     df_deduplicated = DynamicFrame.fromDF(dataframe, glueContext, "df_deduplicated")
     return DynamicFrameCollection(
         {"country_vertex_transform": df_deduplicated}, glueContext
-    )
-
-
-# Script generated for node device_id_vertex_transform
-def add_label_to_device_id(glueContext, dfc) -> DynamicFrameCollection:
-    from neptune_python_utils.glue_gremlin_csv_transforms import (
-        GlueGremlinCsvTransforms,
-    )
-
-    df = dfc.select(list(dfc.keys())[0])
-    df = DropNullFields.apply(frame=df)
-    df_withlabel = GlueGremlinCsvTransforms.addLabel(df, "DeviceID")
-    dataframe = df_withlabel.toDF().dropDuplicates().repartition(1)
-    df_deduplicated = DynamicFrame.fromDF(dataframe, glueContext, "df_deduplicated")
-    return DynamicFrameCollection(
-        {"device_id_vertex_transform": df_deduplicated}, glueContext
     )
 
 
@@ -504,15 +504,11 @@ postcode_vertex_transform_node1655148746892 = add_label_to_postcode(
     ),
 )
 
-# Script generated for node device_id_vertex_transform
-device_id_vertex_transform_node1655150089769 = add_label_to_device_id(
-    glueContext,
-    DynamicFrameCollection(
-        {
-            "device_id_vertex_mapping_node1655150040373": device_id_vertex_mapping_node1655150040373
-        },
-        glueContext,
-    ),
+# Script generated for node device_id_vertex_filter
+device_id_vertex_filter_node1655325348057 = Filter.apply(
+    frame=device_id_vertex_mapping_node1655150040373,
+    f=lambda row: (bool(re.match("[a-f0-9A-F]+", row["~id"]))),
+    transformation_ctx="device_id_vertex_filter_node1655325348057",
 )
 
 # Script generated for node client_ip_vertex_transform
@@ -644,11 +640,15 @@ postcode_vertex_select_node1655148797012 = SelectFromCollection.apply(
     transformation_ctx="postcode_vertex_select_node1655148797012",
 )
 
-# Script generated for node device_id_vertex_select
-device_id_vertex_select_node1655150108453 = SelectFromCollection.apply(
-    dfc=device_id_vertex_transform_node1655150089769,
-    key=list(device_id_vertex_transform_node1655150089769.keys())[0],
-    transformation_ctx="device_id_vertex_select_node1655150108453",
+# Script generated for node device_id_vertex_transform
+device_id_vertex_transform_node1655150089769 = add_label_to_device_id(
+    glueContext,
+    DynamicFrameCollection(
+        {
+            "device_id_vertex_filter_node1655325348057": device_id_vertex_filter_node1655325348057
+        },
+        glueContext,
+    ),
 )
 
 # Script generated for node client_ip_vertex_select
@@ -691,6 +691,13 @@ product_vertex_select_node1655061245321 = SelectFromCollection.apply(
     dfc=product_vertex_transform_node1655061140254,
     key=list(product_vertex_transform_node1655061140254.keys())[0],
     transformation_ctx="product_vertex_select_node1655061245321",
+)
+
+# Script generated for node device_id_vertex_select
+device_id_vertex_select_node1655150108453 = SelectFromCollection.apply(
+    dfc=device_id_vertex_transform_node1655150089769,
+    key=list(device_id_vertex_transform_node1655150089769.keys())[0],
+    transformation_ctx="device_id_vertex_select_node1655150108453",
 )
 
 # Script generated for node cookie_graph_nodes
@@ -803,18 +810,6 @@ postcode_graph_nodes_node1655148942084 = glueContext.write_dynamic_frame.from_op
     transformation_ctx="postcode_graph_nodes_node1655148942084",
 )
 
-# Script generated for node device_id_graph_nodes
-device_id_graph_nodes_node1655150126685 = glueContext.write_dynamic_frame.from_options(
-    frame=device_id_vertex_select_node1655150108453,
-    connection_type="s3",
-    format="csv",
-    connection_options={
-        "path": "s3://poc-identity-graph-733157031621/datasets/graph/initial/",
-        "partitionKeys": [],
-    },
-    transformation_ctx="device_id_graph_nodes_node1655150126685",
-)
-
 # Script generated for node client_ip_graph_nodes
 client_ip_graph_nodes_node1655149937474 = glueContext.write_dynamic_frame.from_options(
     frame=client_ip_vertex_select_node1655149916982,
@@ -889,6 +884,18 @@ product_graph_nodes_node1654988774055 = glueContext.write_dynamic_frame.from_opt
         "partitionKeys": [],
     },
     transformation_ctx="product_graph_nodes_node1654988774055",
+)
+
+# Script generated for node device_id_graph_nodes
+device_id_graph_nodes_node1655150126685 = glueContext.write_dynamic_frame.from_options(
+    frame=device_id_vertex_select_node1655150108453,
+    connection_type="s3",
+    format="csv",
+    connection_options={
+        "path": "s3://poc-identity-graph-733157031621/datasets/graph/initial/",
+        "partitionKeys": [],
+    },
+    transformation_ctx="device_id_graph_nodes_node1655150126685",
 )
 
 job.commit()
