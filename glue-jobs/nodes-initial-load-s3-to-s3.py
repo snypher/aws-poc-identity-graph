@@ -387,7 +387,7 @@ session_vertex_mapping_node1654985198507 = ApplyMapping.apply(
 # Script generated for node user_agent_vertex_mapping
 user_agent_vertex_mapping_node1655151682890 = ApplyMapping.apply(
     frame=clickstream_source_dataset_node1654982749940,
-    mappings=[("user-agent", "string", "user-agent", "string")],
+    mappings=[("user-agent", "string", "~id", "string")],
     transformation_ctx="user_agent_vertex_mapping_node1655151682890",
 )
 
