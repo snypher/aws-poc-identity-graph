@@ -6,6 +6,7 @@ from awsglue.context import GlueContext
 from awsglue.job import Job
 from awsglue.dynamicframe import DynamicFrameCollection
 from awsglue.dynamicframe import DynamicFrame
+import re
 
 # Script generated for node session_device_id_edge_transform
 def create_edge_session_device_id(glueContext, dfc) -> DynamicFrameCollection:
@@ -141,18 +142,6 @@ def create_edge_session_client_ip(glueContext, dfc) -> DynamicFrameCollection:
     return DynamicFrameCollection({"session_client_ip_edge_transform": df}, glueContext)
 
 
-# Script generated for node session_username_edge_transform
-def create_edge_session_username(glueContext, dfc) -> DynamicFrameCollection:
-    from neptune_python_utils.glue_gremlin_csv_transforms import (
-        GlueGremlinCsvTransforms,
-    )
-
-    df = dfc.select(list(dfc.keys())[0])
-    df = GlueGremlinCsvTransforms.addLabel(df, "loggedAs")
-    df = GlueGremlinCsvTransforms.create_edge_id_column(df, "~from", "~to")
-    return DynamicFrameCollection({"session_username_edge_transform": df}, glueContext)
-
-
 # Script generated for node session_useragent_edge_transform
 def create_edge_session_useragent(glueContext, dfc) -> DynamicFrameCollection:
     from neptune_python_utils.glue_gremlin_csv_transforms import (
@@ -163,6 +152,18 @@ def create_edge_session_useragent(glueContext, dfc) -> DynamicFrameCollection:
     df = GlueGremlinCsvTransforms.addLabel(df, "usedDevice")
     df = GlueGremlinCsvTransforms.create_edge_id_column(df, "~from", "~to")
     return DynamicFrameCollection({"session_useragent_edge_transform": df}, glueContext)
+
+
+# Script generated for node session_username_edge_transform
+def create_edge_session_username(glueContext, dfc) -> DynamicFrameCollection:
+    from neptune_python_utils.glue_gremlin_csv_transforms import (
+        GlueGremlinCsvTransforms,
+    )
+
+    df = dfc.select(list(dfc.keys())[0])
+    df = GlueGremlinCsvTransforms.addLabel(df, "loggedAs")
+    df = GlueGremlinCsvTransforms.create_edge_id_column(df, "~from", "~to")
+    return DynamicFrameCollection({"session_username_edge_transform": df}, glueContext)
 
 
 # Script generated for node session_cookie_edge_transform
@@ -414,15 +415,14 @@ session_client_ip_edge_transform_node1655246790185 = create_edge_session_client_
     ),
 )
 
-# Script generated for node session_username_edge_transform
-session_username_edge_transform_node1655248802533 = create_edge_session_username(
-    glueContext,
-    DynamicFrameCollection(
-        {
-            "session_username_edge_mapping_node1655248699655": session_username_edge_mapping_node1655248699655
-        },
-        glueContext,
+# Script generated for node session_username_edge_filter
+session_username_edge_filter_node1655326706961 = Filter.apply(
+    frame=session_username_edge_mapping_node1655248699655,
+    f=lambda row: (
+        bool(re.match("[a-z0-9-]+", row["~from"]))
+        and bool(re.match("[a-z0-9]", row["~to"]))
     ),
+    transformation_ctx="session_username_edge_filter_node1655326706961",
 )
 
 # Script generated for node session_client_ip_edge_transform
@@ -436,15 +436,14 @@ session_client_ip_edge_transform_node1655248164018 = create_edge_session_domain(
     ),
 )
 
-# Script generated for node session_device_id_edge_transform
-session_device_id_edge_transform_node1655248481778 = create_edge_session_device_id(
-    glueContext,
-    DynamicFrameCollection(
-        {
-            "session_device_id_edge_mapping_node1655248355616": session_device_id_edge_mapping_node1655248355616
-        },
-        glueContext,
+# Script generated for node session_device_id_edge_filter
+session_device_id_edge_filter_node1655326587577 = Filter.apply(
+    frame=session_device_id_edge_mapping_node1655248355616,
+    f=lambda row: (
+        bool(re.match("[a-z0-9-]+", row["~from"]))
+        and bool(re.match("[a-f0-9A-F]+", row["~to"]))
     ),
+    transformation_ctx="session_device_id_edge_filter_node1655326587577",
 )
 
 # Script generated for node session_useragent_edge_transform
@@ -555,15 +554,14 @@ customer_product_edge_transform_node1655244817350 = create_edge_customer_product
     ),
 )
 
-# Script generated for node cookie_username_edge_transform
-cookie_username_edge_transform_node1655250820742 = create_edge_cookie_username(
-    glueContext,
-    DynamicFrameCollection(
-        {
-            "cookie_username_edge_mapping_node1655250853166": cookie_username_edge_mapping_node1655250853166
-        },
-        glueContext,
+# Script generated for node cookie_username_edge_filter
+cookie_username_edge_filter_node1655327177625 = Filter.apply(
+    frame=cookie_username_edge_mapping_node1655250853166,
+    f=lambda row: (
+        bool(re.match("[a-z0-9-]+", row["~from"]))
+        and bool(re.match("[a-f0-9A-F]+", row["~to"]))
     ),
+    transformation_ctx="cookie_username_edge_filter_node1655327177625",
 )
 
 # Script generated for node session_cookie_edge_transform
@@ -584,11 +582,15 @@ session_client_ip_edge_select_node1655247178187 = SelectFromCollection.apply(
     transformation_ctx="session_client_ip_edge_select_node1655247178187",
 )
 
-# Script generated for node session_username_edge_select
-session_username_edge_select_node1655248814259 = SelectFromCollection.apply(
-    dfc=session_username_edge_transform_node1655248802533,
-    key=list(session_username_edge_transform_node1655248802533.keys())[0],
-    transformation_ctx="session_username_edge_select_node1655248814259",
+# Script generated for node session_username_edge_transform
+session_username_edge_transform_node1655248802533 = create_edge_session_username(
+    glueContext,
+    DynamicFrameCollection(
+        {
+            "session_username_edge_filter_node1655326706961": session_username_edge_filter_node1655326706961
+        },
+        glueContext,
+    ),
 )
 
 # Script generated for node session_client_ip_edge_select
@@ -598,11 +600,15 @@ session_client_ip_edge_select_node1655248251339 = SelectFromCollection.apply(
     transformation_ctx="session_client_ip_edge_select_node1655248251339",
 )
 
-# Script generated for node session_device_id_edge_select
-session_device_id_edge_select_node1655248628545 = SelectFromCollection.apply(
-    dfc=session_device_id_edge_transform_node1655248481778,
-    key=list(session_device_id_edge_transform_node1655248481778.keys())[0],
-    transformation_ctx="session_device_id_edge_select_node1655248628545",
+# Script generated for node session_device_id_edge_transform
+session_device_id_edge_transform_node1655248481778 = create_edge_session_device_id(
+    glueContext,
+    DynamicFrameCollection(
+        {
+            "session_device_id_edge_filter_node1655326587577": session_device_id_edge_filter_node1655326587577
+        },
+        glueContext,
+    ),
 )
 
 # Script generated for node session_useragent_edge_select
@@ -675,11 +681,15 @@ customer_product_edge_select_node1655244950238 = SelectFromCollection.apply(
     transformation_ctx="customer_product_edge_select_node1655244950238",
 )
 
-# Script generated for node cookie_username_edge_select
-cookie_username_edge_select_node1655250927384 = SelectFromCollection.apply(
-    dfc=cookie_username_edge_transform_node1655250820742,
-    key=list(cookie_username_edge_transform_node1655250820742.keys())[0],
-    transformation_ctx="cookie_username_edge_select_node1655250927384",
+# Script generated for node cookie_username_edge_transform
+cookie_username_edge_transform_node1655250820742 = create_edge_cookie_username(
+    glueContext,
+    DynamicFrameCollection(
+        {
+            "cookie_username_edge_filter_node1655327177625": cookie_username_edge_filter_node1655327177625
+        },
+        glueContext,
+    ),
 )
 
 # Script generated for node session_cookie_edge_select
@@ -687,6 +697,27 @@ session_cookie_edge_select_node1655250518292 = SelectFromCollection.apply(
     dfc=session_cookie_edge_transform_node1655250389355,
     key=list(session_cookie_edge_transform_node1655250389355.keys())[0],
     transformation_ctx="session_cookie_edge_select_node1655250518292",
+)
+
+# Script generated for node session_username_edge_select
+session_username_edge_select_node1655248814259 = SelectFromCollection.apply(
+    dfc=session_username_edge_transform_node1655248802533,
+    key=list(session_username_edge_transform_node1655248802533.keys())[0],
+    transformation_ctx="session_username_edge_select_node1655248814259",
+)
+
+# Script generated for node session_device_id_edge_select
+session_device_id_edge_select_node1655248628545 = SelectFromCollection.apply(
+    dfc=session_device_id_edge_transform_node1655248481778,
+    key=list(session_device_id_edge_transform_node1655248481778.keys())[0],
+    transformation_ctx="session_device_id_edge_select_node1655248628545",
+)
+
+# Script generated for node cookie_username_edge_select
+cookie_username_edge_select_node1655250927384 = SelectFromCollection.apply(
+    dfc=cookie_username_edge_transform_node1655250820742,
+    key=list(cookie_username_edge_transform_node1655250820742.keys())[0],
+    transformation_ctx="cookie_username_edge_select_node1655250927384",
 )
 
 # Script generated for node session_client_ip_graph_edges
@@ -703,20 +734,6 @@ session_client_ip_graph_edges_node1655247196831 = (
     )
 )
 
-# Script generated for node session_username_graph_edges
-session_username_graph_edges_node1655248984500 = (
-    glueContext.write_dynamic_frame.from_options(
-        frame=session_username_edge_select_node1655248814259,
-        connection_type="s3",
-        format="csv",
-        connection_options={
-            "path": "s3://poc-identity-graph-733157031621/datasets/graph/initial/",
-            "partitionKeys": [],
-        },
-        transformation_ctx="session_username_graph_edges_node1655248984500",
-    )
-)
-
 # Script generated for node session_domain_graph_edges
 session_domain_graph_edges_node1655248270929 = (
     glueContext.write_dynamic_frame.from_options(
@@ -728,20 +745,6 @@ session_domain_graph_edges_node1655248270929 = (
             "partitionKeys": [],
         },
         transformation_ctx="session_domain_graph_edges_node1655248270929",
-    )
-)
-
-# Script generated for node session_device_id_graph_edges
-session_device_id_graph_edges_node1655248641516 = (
-    glueContext.write_dynamic_frame.from_options(
-        frame=session_device_id_edge_select_node1655248628545,
-        connection_type="s3",
-        format="csv",
-        connection_options={
-            "path": "s3://poc-identity-graph-733157031621/datasets/graph/initial/",
-            "partitionKeys": [],
-        },
-        transformation_ctx="session_device_id_graph_edges_node1655248641516",
     )
 )
 
@@ -883,20 +886,6 @@ customer_product_graph_edges_node1655244967442 = (
     )
 )
 
-# Script generated for node cookie_username_graph_edges
-cookie_username_graph_edges_node1655250990201 = (
-    glueContext.write_dynamic_frame.from_options(
-        frame=cookie_username_edge_select_node1655250927384,
-        connection_type="s3",
-        format="csv",
-        connection_options={
-            "path": "s3://poc-identity-graph-733157031621/datasets/graph/initial/",
-            "partitionKeys": [],
-        },
-        transformation_ctx="cookie_username_graph_edges_node1655250990201",
-    )
-)
-
 # Script generated for node session_cookie_graph_edges
 session_cookie_graph_edges_node1655250531789 = (
     glueContext.write_dynamic_frame.from_options(
@@ -908,6 +897,48 @@ session_cookie_graph_edges_node1655250531789 = (
             "partitionKeys": [],
         },
         transformation_ctx="session_cookie_graph_edges_node1655250531789",
+    )
+)
+
+# Script generated for node session_username_graph_edges
+session_username_graph_edges_node1655248984500 = (
+    glueContext.write_dynamic_frame.from_options(
+        frame=session_username_edge_select_node1655248814259,
+        connection_type="s3",
+        format="csv",
+        connection_options={
+            "path": "s3://poc-identity-graph-733157031621/datasets/graph/initial/",
+            "partitionKeys": [],
+        },
+        transformation_ctx="session_username_graph_edges_node1655248984500",
+    )
+)
+
+# Script generated for node session_device_id_graph_edges
+session_device_id_graph_edges_node1655248641516 = (
+    glueContext.write_dynamic_frame.from_options(
+        frame=session_device_id_edge_select_node1655248628545,
+        connection_type="s3",
+        format="csv",
+        connection_options={
+            "path": "s3://poc-identity-graph-733157031621/datasets/graph/initial/",
+            "partitionKeys": [],
+        },
+        transformation_ctx="session_device_id_graph_edges_node1655248641516",
+    )
+)
+
+# Script generated for node cookie_username_graph_edges
+cookie_username_graph_edges_node1655250990201 = (
+    glueContext.write_dynamic_frame.from_options(
+        frame=cookie_username_edge_select_node1655250927384,
+        connection_type="s3",
+        format="csv",
+        connection_options={
+            "path": "s3://poc-identity-graph-733157031621/datasets/graph/initial/",
+            "partitionKeys": [],
+        },
+        transformation_ctx="cookie_username_graph_edges_node1655250990201",
     )
 )
 
