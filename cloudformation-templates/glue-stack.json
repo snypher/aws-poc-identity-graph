@@ -16,9 +16,28 @@
 			"Default": "poc-identity-graph"
 		},
 		"S3SourceDatasetsPath": {
-			"Description": "S3 path for source datasets CVS files ( files to crawl)",
+			"Description": "S3 path for source datasets CVS files (files to crawl)",
 			"Type": "String",
-			"AllowedPattern": "^s3://.*/$"
+			"AllowedPattern": "^s3://.*/$",
+			"Default": "s3://poc-identity-graph-733157031621/datasets/sources/initial/"
+		},
+		"S3GraphDatasetsPath": {
+			"Description": "S3 path to store gremlin-formated CVS files (graph datasets)",
+			"Type": "String",
+			"AllowedPattern": "^s3://.*/$",
+			"Default": "s3://poc-identity-graph-733157031621/datasets/graph/initial/"
+		},
+		"S3GlueJobsScriptPath": {
+			"Description": "S3 path where scripts for Glue Jobs are located (pyspark file)",
+			"Type": "String",
+			"AllowedPattern": "^s3://.*/$",
+			"Default": "s3://poc-identity-graph-733157031621/glue-jobs/"
+		},
+		"S3LogsPath": {
+			"Description": "S3 path where log files will be stored",
+			"Type": "String",
+			"AllowedPattern": "^s3://.*/$",
+			"Default": "s3://poc-identity-graph-733157031621/logs/"
 		},
 		"NeptuneUsername": {
 			"Description": "Username for JDBC connection to Neptune DB cluster",
@@ -157,7 +176,138 @@
 					"UpdateBehavior": "LOG", 
 					"DeleteBehavior": "DEPRECATE_IN_DATABASE" 
 				},
+				"Tags": {
+					"Environment": "ab3", 
+					"auto-delete": "never", 
+					"CreatedBy": "chvezk" 
+				},
 				"Configuration": "{ \"Version\": 1.0, \"CrawlerOutput\": { \"Partitions\": { \"AddOrUpdateBehavior\": \"InheritFromTable\" }, \"Tables\": {\"AddOrUpdateBehavior\": \"MergeNewColumns\" } } }"
+			}
+		},
+		"NodesInitialLoadS3toS3Job": {
+			"Type": "AWS::Glue::Job",
+			"Properties": {
+				"Role": {
+					"Fn::ImportValue": {
+						"Fn::Sub": "${InfrastructureID}-GlueRoleARN"
+					}
+				},
+				"DefaultArguments": {
+					"--job-language": "python",
+					"--extra-py-files": {
+						"Fn::Sub": "${S3GlueJobsScriptPath}libs/neptune_python_utils.zip"
+					},
+					"--job-bookmark-option": "job-bookmark-disable",
+					"--TempDir": {
+						"Fn::Sub": "${S3GlueJobsScriptPath}temporary"
+					},
+					"--class": "GlueApp",
+					"--enable-auto-scaling": "true",
+					"--enable-continuous-cloudwatch-log": "true",
+					"--enable-glue-datacatalog": "true",
+					"--enable-job-insights": "true",
+					"--enable-metrics": "true",
+					"--enable-spark-ui": "true",
+					"--encryption-type": "sse-s3",
+					"--spark-event-logs-path": { 
+						"Fn::Sub": "${S3LogsPath}sparkHistoryLogs" 
+					},
+					"--DATABASE_NAME": {
+						"Ref": "SourceDatabase"
+					},
+					"--TABLE_PREFIX": {
+						"Fn::Sub": "${ApplicationID}_"
+					},
+					"--S3_TARGET_PATH": { 
+						"Ref": "S3GraphDatasetsPath" 
+					}
+				},
+				"MaxRetries": 2,
+				"Description": "Create CSV files formated with Gremlin data format and containing property graph vertices for initial load into the identity graph using Neptune bulk loader",
+				"Command": {
+					"ScriptLocation": {
+						"Fn::Sub": "${S3GlueJobsScriptPath}nodes-initial-load-s3-to-s3.py"
+					},
+					"Name": "glueetl",
+					"PythonVersion": "3"
+				},
+				"MaxCapacity": 10.0,
+				"Timeout": 5,
+				"ExecutionProperty": {
+					"MaxConcurrentRuns": 1
+				},
+				"Name": {
+					"Fn::Sub": "nodes-initial-load-s3-to-s3-${InfrastructureID}"
+				},
+				"GlueVersion": "3.0",
+				"Tags": {
+					"Environment": "ab3", 
+					"auto-delete": "never", 
+					"CreatedBy": "chvezk" 
+				}
+			}
+		},
+		"EdgesInitialLoadS3toS3Job": {
+			"Type": "AWS::Glue::Job",
+			"Properties": {
+				"Role": {
+					"Fn::ImportValue": {
+						"Fn::Sub": "${InfrastructureID}-GlueRoleARN"
+					}
+				},
+				"DefaultArguments": {
+					"--job-language": "python",
+					"--extra-py-files": {
+						"Fn::Sub": "${S3GlueJobsScriptPath}libs/neptune_python_utils.zip"
+					},
+					"--job-bookmark-option": "job-bookmark-disable",
+					"--TempDir": {
+						"Fn::Sub": "${S3GlueJobsScriptPath}temporary"
+					},
+					"--class": "GlueApp",
+					"--enable-auto-scaling": "true",
+					"--enable-continuous-cloudwatch-log": "true",
+					"--enable-glue-datacatalog": "true",
+					"--enable-job-insights": "true",
+					"--enable-metrics": "true",
+					"--enable-spark-ui": "true",
+					"--encryption-type": "sse-s3",
+					"--spark-event-logs-path": { 
+						"Fn::Sub": "${S3LogsPath}sparkHistoryLogs" 
+					},
+					"--DATABASE_NAME": {
+						"Ref": "SourceDatabase"
+					},
+					"--TABLE_PREFIX": {
+						"Fn::Sub": "${ApplicationID}_"
+					},
+					"--S3_TARGET_PATH": { 
+						"Ref": "S3GraphDatasetsPath" 
+					}
+				},
+				"MaxRetries": 2,
+				"Description": "Create CSV files formated with Gremlin data format and containing property graph edges for initial load into the identity graph using Neptune bulk loader",
+				"Command": {
+					"ScriptLocation": {
+						"Fn::Sub": "${S3GlueJobsScriptPath}edges-initial-load-s3-to-s3.py"
+					},
+					"Name": "glueetl",
+					"PythonVersion": "3"
+				},
+				"MaxCapacity": 10.0,
+				"Timeout": 5,
+				"ExecutionProperty": {
+					"MaxConcurrentRuns": 1
+				},
+				"Name": {
+					"Fn::Sub": "edges-initial-load-s3-to-s3-${InfrastructureID}"
+				},
+				"GlueVersion": "3.0",
+				"Tags": {
+					"Environment": "ab3", 
+					"auto-delete": "never", 
+					"CreatedBy": "chvezk" 
+				}
 			}
 		},
 		"GlueConnectToNeptuneRole": {
@@ -254,6 +404,17 @@
 				}
 			}
 		},
+		"SourceDatabaseID": { 
+			"Description": "Glue database identifier for source datasets",
+			"Value": { 
+				"Ref": "SourceDatabase" 
+			},
+			"Export": { 
+				"Name": { 
+					"Fn::Sub": "${InfrastructureID}-SourceDatabaseID" 
+				}
+			}
+		},
 		"SourceDatabaseCrawlerID": { 
 			"Description": "Glue crawler identifier for source database",
 			"Value": { 
@@ -265,14 +426,25 @@
 				}
 			}
 		},
-		"SourceDatabaseID": { 
-			"Description": "Glue database identifier for source datasets",
+		"NodesInitialLoadS3toS3JobID": { 
+			"Description": "Glue Job identifier for graph nodes CSV files",
 			"Value": { 
-				"Ref": "SourceDatabase" 
+				"Ref": "NodesInitialLoadS3toS3Job" 
 			},
 			"Export": { 
 				"Name": { 
-					"Fn::Sub": "${InfrastructureID}-SourceDatabaseID" 
+					"Fn::Sub": "${InfrastructureID}-NodesInitialLoadS3toS3JobID" 
+				}
+			}
+		},
+		"EdgesInitialLoadS3toS3JobID": { 
+			"Description": "Glue Job identifier for graph edges CSV files",
+			"Value": { 
+				"Ref": "EdgesInitialLoadS3toS3Job" 
+			},
+			"Export": { 
+				"Name": { 
+					"Fn::Sub": "${InfrastructureID}-EdgesInitialLoadS3toS3JobID" 
 				}
 			}
 		},

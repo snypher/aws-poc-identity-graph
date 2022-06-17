@@ -202,42 +202,43 @@ def create_edge_city_country(glueContext, dfc) -> DynamicFrameCollection:
     return DynamicFrameCollection({"city_country_edge_transform": df}, glueContext)
 
 
-args = getResolvedOptions(sys.argv, ["JOB_NAME"])
+args = getResolvedOptions(sys.argv, ["JOB_NAME", "DATABASE_NAME", "TABLE_PREFIX", "S3_TARGET_PATH"])
 sc = SparkContext()
 glueContext = GlueContext(sc)
 spark = glueContext.spark_session
 job = Job(glueContext)
+s3_target_path = args["S3_TARGET_PATH"]
 job.init(args["JOB_NAME"], args)
 
 # Script generated for node clickstream_source_dataset
 clickstream_source_dataset_node1655245001033 = (
     glueContext.create_dynamic_frame.from_catalog(
-        database="database_poc_identity_graph",
-        table_name="poc_identity_graph_clickstream",
+        database=args["DATABASE_NAME"],
+        table_name="{}clickstream".format(args["TABLE_PREFIX"]),
         transformation_ctx="clickstream_source_dataset_node1655245001033",
     )
 )
 
 # Script generated for node first_party_source_dataset
 first_party_source_dataset_node1 = glueContext.create_dynamic_frame.from_catalog(
-    database="database_poc_identity_graph",
-    table_name="poc_identity_graph_first_party",
+    database=args["DATABASE_NAME"],
+    table_name="{}first_party".format(args["TABLE_PREFIX"]),
     transformation_ctx="first_party_source_dataset_node1",
 )
 
 # Script generated for node transactional_source_dataset
 transactional_source_dataset_node1655242846478 = (
     glueContext.create_dynamic_frame.from_catalog(
-        database="database_poc_identity_graph",
-        table_name="poc_identity_graph_transactional",
+        database=args["DATABASE_NAME"],
+        table_name="{}transactional".format(args["TABLE_PREFIX"]),
         transformation_ctx="transactional_source_dataset_node1655242846478",
     )
 )
 
 # Script generated for node cookie_source_dataset
 cookie_source_dataset_node1655250072952 = glueContext.create_dynamic_frame.from_catalog(
-    database="database_poc_identity_graph",
-    table_name="poc_identity_graph_cookie",
+    database=args["DATABASE_NAME"],
+    table_name="{}cookie".format(args["TABLE_PREFIX"]),
     transformation_ctx="cookie_source_dataset_node1655250072952",
 )
 
@@ -727,7 +728,7 @@ session_client_ip_graph_edges_node1655247196831 = (
         connection_type="s3",
         format="csv",
         connection_options={
-            "path": "s3://poc-identity-graph-733157031621/datasets/graph/initial/",
+            "path": s3_target_path,
             "partitionKeys": [],
         },
         transformation_ctx="session_client_ip_graph_edges_node1655247196831",
@@ -741,7 +742,7 @@ session_domain_graph_edges_node1655248270929 = (
         connection_type="s3",
         format="csv",
         connection_options={
-            "path": "s3://poc-identity-graph-733157031621/datasets/graph/initial/",
+            "path": s3_target_path,
             "partitionKeys": [],
         },
         transformation_ctx="session_domain_graph_edges_node1655248270929",
@@ -755,7 +756,7 @@ session_useragent_graph_edges_node1655249219117 = (
         connection_type="s3",
         format="csv",
         connection_options={
-            "path": "s3://poc-identity-graph-733157031621/datasets/graph/initial/",
+            "path": s3_target_path,
             "partitionKeys": [],
         },
         transformation_ctx="session_useragent_graph_edges_node1655249219117",
@@ -769,7 +770,7 @@ username_external_id_graph_edges_node1655158563340 = (
         connection_type="s3",
         format="csv",
         connection_options={
-            "path": "s3://poc-identity-graph-733157031621/datasets/graph/initial/",
+            "path": s3_target_path,
             "partitionKeys": [],
         },
         transformation_ctx="username_external_id_graph_edges_node1655158563340",
@@ -783,7 +784,7 @@ username_phone_graph_edges_node1655158811505 = (
         connection_type="s3",
         format="csv",
         connection_options={
-            "path": "s3://poc-identity-graph-733157031621/datasets/graph/initial/",
+            "path": s3_target_path,
             "partitionKeys": [],
         },
         transformation_ctx="username_phone_graph_edges_node1655158811505",
@@ -797,7 +798,7 @@ username_loyalty_gprah_edges_node1655159557115 = (
         connection_type="s3",
         format="csv",
         connection_options={
-            "path": "s3://poc-identity-graph-733157031621/datasets/graph/initial/",
+            "path": s3_target_path,
             "partitionKeys": [],
         },
         transformation_ctx="username_loyalty_gprah_edges_node1655159557115",
@@ -810,7 +811,7 @@ username_email_graph_edges_node3 = glueContext.write_dynamic_frame.from_options(
     connection_type="s3",
     format="csv",
     connection_options={
-        "path": "s3://poc-identity-graph-733157031621/datasets/graph/initial/",
+        "path": s3_target_path,
         "partitionKeys": [],
     },
     transformation_ctx="username_email_graph_edges_node3",
@@ -823,7 +824,7 @@ username_postcode_graph_edges_node1655159093557 = (
         connection_type="s3",
         format="csv",
         connection_options={
-            "path": "s3://poc-identity-graph-733157031621/datasets/graph/initial/",
+            "path": s3_target_path,
             "partitionKeys": [],
         },
         transformation_ctx="username_postcode_graph_edges_node1655159093557",
@@ -837,7 +838,7 @@ username_city_graph_edges_node1655159969396 = (
         connection_type="s3",
         format="csv",
         connection_options={
-            "path": "s3://poc-identity-graph-733157031621/datasets/graph/initial/",
+            "path": s3_target_path,
             "partitionKeys": [],
         },
         transformation_ctx="username_city_graph_edges_node1655159969396",
@@ -851,7 +852,7 @@ city_country_graph_edges_node1655160179576 = (
         connection_type="s3",
         format="csv",
         connection_options={
-            "path": "s3://poc-identity-graph-733157031621/datasets/graph/initial/",
+            "path": s3_target_path,
             "partitionKeys": [],
         },
         transformation_ctx="city_country_graph_edges_node1655160179576",
@@ -865,7 +866,7 @@ product_category_graph_edges_node1655244683476 = (
         connection_type="s3",
         format="csv",
         connection_options={
-            "path": "s3://poc-identity-graph-733157031621/datasets/graph/initial/",
+            "path": s3_target_path,
             "partitionKeys": [],
         },
         transformation_ctx="product_category_graph_edges_node1655244683476",
@@ -879,7 +880,7 @@ customer_product_graph_edges_node1655244967442 = (
         connection_type="s3",
         format="csv",
         connection_options={
-            "path": "s3://poc-identity-graph-733157031621/datasets/graph/initial/",
+            "path": s3_target_path,
             "partitionKeys": [],
         },
         transformation_ctx="customer_product_graph_edges_node1655244967442",
@@ -893,7 +894,7 @@ session_cookie_graph_edges_node1655250531789 = (
         connection_type="s3",
         format="csv",
         connection_options={
-            "path": "s3://poc-identity-graph-733157031621/datasets/graph/initial/",
+            "path": s3_target_path,
             "partitionKeys": [],
         },
         transformation_ctx="session_cookie_graph_edges_node1655250531789",
@@ -907,7 +908,7 @@ session_username_graph_edges_node1655248984500 = (
         connection_type="s3",
         format="csv",
         connection_options={
-            "path": "s3://poc-identity-graph-733157031621/datasets/graph/initial/",
+            "path": s3_target_path,
             "partitionKeys": [],
         },
         transformation_ctx="session_username_graph_edges_node1655248984500",
@@ -921,7 +922,7 @@ session_device_id_graph_edges_node1655248641516 = (
         connection_type="s3",
         format="csv",
         connection_options={
-            "path": "s3://poc-identity-graph-733157031621/datasets/graph/initial/",
+            "path": s3_target_path,
             "partitionKeys": [],
         },
         transformation_ctx="session_device_id_graph_edges_node1655248641516",
@@ -935,7 +936,7 @@ cookie_username_graph_edges_node1655250990201 = (
         connection_type="s3",
         format="csv",
         connection_options={
-            "path": "s3://poc-identity-graph-733157031621/datasets/graph/initial/",
+            "path": s3_target_path,
             "partitionKeys": [],
         },
         transformation_ctx="cookie_username_graph_edges_node1655250990201",
