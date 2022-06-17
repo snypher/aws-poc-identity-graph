@@ -7,13 +7,13 @@ Proof-of-Concept (PoC) for Identity Graph using Amazon Neptune
 
 ### Step 1: Clone the github repository
 
-```
+```sh
 git clone https://github.com/snypher/aws-poc-identity-graph.git
 ```
 
 ### Step 2: Create S3 bucket to store source datasets and PoC artifacts
 
-```
+```sh
 BUCKET_NAME="poc-identity-graph-733157031621"
 REGION="us-east-2"
 aws s3 mb s3://$BUCKET_NAME \
@@ -40,9 +40,7 @@ Mock data for the below source datasets will be generated
 * Cookie database
 * Click Stream database
 
-Generating a volume of 10K first-party records could take 3-4 minutes. A volume of 20K first-party records could take 10-11 minutes.
-
-```
+```sh
 python3 aws-poc-identity-graph/utils/create-source-datasets.py \
 --records 10000
 ```
@@ -68,11 +66,17 @@ Resulting CSV files with raw data per each dataset
 * `clickstream_data_full.csv`
 * `transactional_data_full.csv`
 
+Execution time for this process will depends on the compute resources available in your compute environment. Below are some references captured by running the script in different EC2 instance types and sizes
+
+* A volume of 10K first-party records could take 3-4 minutes when using a t3.large EC2 instance
+* A volume of 20K first-party records could take 10-11 minutes when using a t3.large EC2 instance
+* A volume of 100K first-party records could take about 130 minutes when using a m5zn.2xlarge EC2 instance
+
 ### Step 4: Upload source datasets files to S3 bucket
 
 CSV files with raw data will be stored into the `datasets` S3 prefix
 
-```
+```sh
 BUCKET_NAME="poc-identity-graph-733157031621"
 PREFIX="datasets/sources/initial"
 aws s3 cp first_party_data_full.csv s3://$BUCKET_NAME/$PREFIX/first_party/
@@ -83,23 +87,175 @@ aws s3 cp transactional_data_full.csv s3://$BUCKET_NAME/$PREFIX/transactional/
 
 ### Step 5: Prepare the base infrastructure (VPC, IAM, Neptune DB and Glue)
 
-* Upload the base CloudFormation templates to S3 bucket
+#### 5.1: Upload the CloudFormation templates to S3 bucket
 
-```
+```sh
 BUCKET_NAME="poc-identity-graph-733157031621"
 PREFIX="cloudformation-templates"
 aws s3 sync aws-poc-identity-graph/cloudformation-templates/ \
 s3://$BUCKET_NAME/$PREFIX/
 ```
 
-* Generate a new SSH key pair in the selected AWS region. Assign `ssh-key-poc-identity-graph` as key name.
-* Launch the CloudFormation stack `s3://poc-identity-graph-733157031621/cloudformation-templates/vpc-stack.json` to create VPC resources. Use `VPC-Stack-poc-identity-graph` as Stack name
+#### 5.2: Generate a new SSH key pair in the selected AWS region
 
-* Launch the CloudFormation stack `s3://poc-identity-graph-733157031621/cloudformation-templates/iam-stack.json` to create IAM resources. Use `IAM-Stack-poc-identity-graph` as Stack name
+Assign `ssh-key-poc-identity-graph` as key name
 
-* Launch the CloudFormation stack `s3://poc-identity-graph-733157031621/cloudformation-templates/neptune-core-stack.json` to create Neptune DB cluster and EC2 client instance. Use `Neptune-Core-Stack-poc-identity-graph` as Stack name
-* Launch the CloudFormation stack `s3://poc-identity-graph-733157031621/cloudformation-templates/neptune-workbench-stack.json` to create Neptune DB cluster and EC2 client instance. Use `Neptune-Workbench-Stack-poc-identity-graph` as Stack name
-* Launch the CloudFormation stack `s3://poc-identity-graph-733157031621/cloudformation-templates/glue-stack.json` to create additional Glue IAM role to connect to Neptune, Glue database and Glue crawler for source datasets. Use `Glue-Stack-poc-identity-graph` as Stack name
+#### 5.3: Launch the VPC CloudFormation stack 
+
+* This stack will create VPC resources
+* CloudFormation template file: [`vpc-stack.json`](https://github.com/snypher/aws-poc-identity-graph/blob/main/cloudformation-templates/glue-stack.json)
+* Use `VPC-Stack-poc-identity-graph` as Stack name
+
+#### 5.4: Launch the IAM CloudFormation stack 
+
+* This stack will create IAM resources
+* CloudFormation template file: [`iam-stack.json`](https://github.com/snypher/aws-poc-identity-graph/blob/main/cloudformation-templates/iam-stack.json)
+* Use `IAM-Stack-poc-identity-graph` as Stack name
+
+#### 5.5: Launch the Neptune Core CloudFormation stack 
+
+* This stack will create Neptune DB cluster and EC2 client instance
+* CloudFormation template file: [`neptune-core-stack.json`](https://github.com/snypher/aws-poc-identity-graph/blob/main/cloudformation-templates/neptune-core-stack.json)
+* Use `Neptune-Core-Stack-poc-identity-graph` as Stack name
+
+#### 5.6: Launch the Neptune Workbench CloudFormation stack 
+
+* This stack will create a SageMaker Notebook instance with Neptune Workbench
+* CloudFormation template file: [`neptune-workbench-stack.json`](https://github.com/snypher/aws-poc-identity-graph/blob/main/cloudformation-templates/neptune-workbench-stack.json)
+* Use `Neptune-Workbench-Stack-poc-identity-graph` as Stack name
+
+#### 5.7: Launch the Glue CloudFormation stack 
+
+* This stack will create:
+  * Additional Glue IAM role to connect to Neptune
+  * Glue database
+  * Glue crawler for source datasets
+  * Glue ETL Jobs to generate CSV files formated with Gremlin data format
+* CloudFormation template file: [`glue-stack.json`](https://github.com/snypher/aws-poc-identity-graph/blob/main/cloudformation-templates/glue-stack.json)
+* Use `Glue-Stack-poc-identity-graph` as Stack name
+
+#### Step 6: Manually run the Glue Crawler `source-datasets-crawler-poc-identity-graph`
+
+The crawler `source-datasets-crawler-poc-identity-graph` is in charge for scanning raw CSV files stored in S3 path `s3://poc-identity-graph-733157031621/datasets/sources/initial/`, discover schema of these source datasets and stored it into the centralized Glue Data Catalog. A glue table definition is created per each source CSV file into the Glue database `database_poc_identity_graph`.
+
+
+```sh
+REGION="us-east-2"
+aws glue start-crawler \
+--name source-datasets-crawler-poc-identity-graph \
+--region $REGION
+```
+
+#### Step 7: If necessary, update schema for the Glue tables to define the correct column names
+
+Under some circumstances, the glue crawler built-in CSV classifier can't determine a header from the first row of data in a CSV file. This lead crawler no succesfully infering the column names and types. More details can be found in the public [Glue user guide](https://docs.aws.amazon.com/glue/latest/dg/add-classifier.html#classifier-builtin-rules).
+
+Before running ETL jobs against source datasets stored in the Glue Data Catalog, we would need to update table metadata to set the correct column names and data type. Below are the lists of columns and data types per each source dataset
+
+* Table `poc_identity_graph_first_party`
+
+```
+------------------------------
+|          GetTable          |
++-----------------+----------+
+|      Name       |  Type    |
++-----------------+----------+
+|  user_name      |  string  |
+|  email          |  string  |
+|  phone_number   |  string  |
+|  external_id    |  string  |
+|  street_address |  string  |
+|  postcode       |  bigint  |
+|  city           |  string  |
+|  country        |  string  |
+|  birthday       |  string  |
+|  loyalty_points |  bigint  |
+|  loyalty_level  |  string  |
++-----------------+----------+
+```
+
+* Table `poc_identity_graph_cookie`
+
+```
+------------------------------------
+|             GetTable             |
++-----------------------+----------+
+|         Name          |  Type    |
++-----------------------+----------+
+|  cookie_id            |  string  |
+|  session_id           |  string  |
+|  last_action          |  string  |
+|  user_name            |  string  |
+|  conversion_id        |  string  |
+|  session_duration_sec |  bigint  |
++-----------------------+----------+
+```
+
+* Table `poc_identity_graph_clickstream`
+
+```
+------------------------------------
+|             GetTable             |
++-----------------------+----------+
+|         Name          |  Type    |
++-----------------------+----------+
+|  session_id           |  string  |
+|  client_ip            |  string  |
+|  client_platform      |  string  |
+|  canonical_url        |  string  |
+|  domain_name          |  string  |
+|  app_id               |  string  |
+|  device_id            |  string  |
+|  user_name            |  string  |
+|  events               |  bigint  |
+|  start_timestamp      |  string  |
+|  start_event          |  string  |
+|  end_timestamp        |  string  |
+|  end_event            |  string  |
+|  session_duration_sec |  bigint  |
+|  user-agent           |  string  |
++-----------------------+----------+
+```
+
+* Table `poc_identity_graph_transactional`
+
+```
+--------------------------------
+|           GetTable           |
++-------------------+----------+
+|       Name        |  Type    |
++-------------------+----------+
+|  product_id       |  string  |
+|  product_name     |  string  |
+|  purchased_date   |  string  |
+|  product_category |  string  |
+|  customer_id      |  string  |
+|  customer_email   |  string  |
+|  reward_points    |  bigint  |
++-------------------+----------+
+```
+
+#### Step 8: Manually run the Glue Job `nodes-initial-load-s3-to-s3-poc-identity-graph`
+
+The Glue ETL job `nodes-initial-load-s3-to-s3-poc-identity-graph` create gremlin-formated CSV files related to Property Graph vertices (a.k.a. entities). It extracts data from Glue tables in Glue database `database_poc_identity_graph` (a.k.a. source datasets), apply simple transformations to schema and data like de-duplication and removes nulls, and generates gremlin-formated CSV files to ingest initial data into the identity graph using the Neptune bulk loader
+
+```sh
+REGION="us-east-2"
+aws glue start-job-run \
+--job-name nodes-initial-load-s3-to-s3-poc-identity-graph \
+--region $REGION
+```
+
+#### Step 9: Manually run the Glue Job `edges-initial-load-s3-to-s3-poc-identity-graph`
+
+The Glue ETL job `edges-initial-load-s3-to-s3-poc-identity-graph` create gremlin-formated CSV files related to Property Graph edges (a.k.a. relationships). It extracts data from Glue tables in Glue database `database_poc_identity_graph` (a.k.a. source datasets), apply simple transformations to schema and data like de-duplication and removes nulls, and generates gremlin-formated CSV files to ingest initial data into the identity graph using the Neptune bulk loader
+
+```sh
+REGION="us-east-2"
+aws glue start-job-run \
+--job-name edges-initial-load-s3-to-s3-poc-identity-graph \
+--region $REGION
+```
 
 ## References
 
