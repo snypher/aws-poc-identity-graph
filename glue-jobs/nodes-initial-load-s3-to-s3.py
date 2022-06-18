@@ -46,8 +46,10 @@ def add_label_to_product(glueContext, dfc) -> DynamicFrameCollection:
 
     df = dfc.select(list(dfc.keys())[0])
     df_withlabel = GlueGremlinCsvTransforms.addLabel(df, "Product")
+    dataframe = df_withlabel.toDF().dropDuplicates().repartition(1)
+    df_deduplicated = DynamicFrame.fromDF(dataframe, glueContext, "df_deduplicated")
     return DynamicFrameCollection(
-        {"produc_vertex_transform": df_withlabel}, glueContext
+        {"produc_vertex_transform": df_deduplicated}, glueContext
     )
 
 
@@ -403,8 +405,7 @@ product_category_vertex_mapping_node1655082105547 = ApplyMapping.apply(
 product_vertex_mapping_node1654988661554 = ApplyMapping.apply(
     frame=transactional_source_dataset_node1654975865526,
     mappings=[
-        ("product_id", "string", "~id", "string"),
-        ("product_name", "string", "product_id:String", "string"),
+        ("product_name", "string", "~id", "string"),
     ],
     transformation_ctx="product_vertex_mapping_node1654988661554",
 )

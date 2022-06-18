@@ -367,7 +367,7 @@ city_country_edge_mapping_node1655160004375 = ApplyMapping.apply(
 product_category_edge_mapping_node1655243948818 = ApplyMapping.apply(
     frame=transactional_source_dataset_node1655242846478,
     mappings=[
-        ("product_id", "string", "~from", "string"),
+        ("product_name", "string", "~from", "string"),
         ("product_category", "string", "~to", "string"),
     ],
     transformation_ctx="product_category_edge_mapping_node1655243948818",
@@ -377,7 +377,8 @@ product_category_edge_mapping_node1655243948818 = ApplyMapping.apply(
 customer_product_edge_mapping_node1655244735635 = ApplyMapping.apply(
     frame=transactional_source_dataset_node1655242846478,
     mappings=[
-        ("product_id", "string", "~to", "string"),
+        ("product_name", "string", "~to", "string"),
+        ("purchase_id", "string", "purchase_id:String", "string"),
         ("purchased_date", "string", "purchased_date:Date", "string"),
         ("customer_id", "string", "~from", "string"),
         ("reward_points", "long", "reward_points:Long", "long"),

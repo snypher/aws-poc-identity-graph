@@ -84,7 +84,7 @@ def create_first_party_dataset():
 # Create mock data for transactional source dataset (e.g. purchase database)
 def create_transactional_dataset():
     filename = 'transactional_data_full.csv'
-    fields = [ 'product_id', 'product_name', 'purchased_date', 
+    fields = [ 'purchase_id', 'product_name', 'purchased_date', 
         'product_category', 'customer_id', 'reward_points' ]
     brands = [ 'Samsung', 'LG', 'Sony', 'Motorola', 'BenQ', 'Apple' ]
     product = [ 'TV', 'Cell Phone', 'Tablet', 'Monitor', 
@@ -115,7 +115,7 @@ def create_transactional_dataset():
         if args.debug: print(fields)
         
         for i in range(int(args.records)):
-            product_id = fake.bothify('????-########').upper()
+            purchase_id = fake.bothify('????-########').upper()
             product_name = '{0} {1} {2}'.format(
                 fake.word(ext_word_list=product),
                 fake.word(ext_word_list=brands),
@@ -129,7 +129,7 @@ def create_transactional_dataset():
             else:   # Anything else: customer provided an email
                 customer_id = fake.email()
             reward_points = randint(10,100)
-            row = [ product_id, product_name, purchased_date, 
+            row = [ purchase_id, product_name, purchased_date, 
                 product_category, customer_id, reward_points ]
             transactional_df.loc[i] = row
             if args.debug: print('Transactional record: {0}'.format(row))
