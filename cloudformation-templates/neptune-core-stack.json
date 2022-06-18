@@ -75,7 +75,7 @@
     },
     "NeptuneQueryTimeout": {
       "Type": "Number",
-      "Default": 20000,
+      "Default": 60000,
       "Description": "Neptune query timeout (in milliseconds)"
     },
     "NeptuneEnableAuditLog": {
