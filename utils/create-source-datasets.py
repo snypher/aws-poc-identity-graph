@@ -12,8 +12,10 @@ import pandas as pd
 
 # Defining input parameters
 parser = argparse.ArgumentParser()
-parser.add_argument('--records', default='100', 
+parser.add_argument('--records', default='10000', 
     help='Amount of mock data records to generate')
+parser.add_argument('--uniqueness', default='30', 
+    help='Uniqueness percentage of mock data generated for IPv4 addresses and Device IDs')
 parser.add_argument('--debug', default=0, type=int, choices=[0,1], 
     help='Turn On/Off debugging (detailed output with muck data generated)')
 
@@ -27,6 +29,39 @@ cwd = os.getcwd()
 known_usernames = []
 known_emails = []
 known_external_ids = []
+# Global lists for faked IPv4 addresses and device IDs subsets
+subset_ipv4_addresses = []
+subset_device_ids = []
+
+# Generate mock data for subset of faked public IP addresses
+def generate_public_ips_subset():
+    subset = ( int((int(args.records)*int(args.uniqueness))/100) 
+        if int(args.records) >= 100 else int(args.records) )
+    
+    print('Generating {} records for public IP addresses'.format(int(subset)))
+    
+    try:
+        for i in range(int(subset)):
+            client_ip = fake.ipv4_public()
+            subset_ipv4_addresses.append(client_ip)
+    except Exception as e:
+        print(f"Unexpected exception : {str(e)}")
+        raise e
+
+# Generate mock data for subset of faked Device IDs
+def generate_device_ids_subset():
+    subset = ( int((int(args.records)*int(args.uniqueness))/100) 
+        if int(args.records) >= 100 else int(args.records) )
+    
+    print('Generating {} records for Device IDs'.format(int(subset)))
+    
+    try:
+        for i in range(int(subset)):
+            device_id = fake.hexify('^^^^^^^^^^^^^^^^',True)
+            subset_device_ids.append(device_id)
+    except Exception as e:
+        print(f"Unexpected exception : {str(e)}")
+        raise e
 
 # Create mock data for first-party source dataset (e.g. CRM database)
 def create_first_party_dataset():
@@ -150,14 +185,6 @@ def generate_clickstream_record(session, user, timestamp, platform):
     apps = [ 'ecommerce', 'travel', 'health_providers', 'health_services' ]
     row = []
     
-    # Faker provider to randomize across unique user names
-    username_id_provider = DynamicProvider(
-        provider_name = "username_id",
-        elements = known_usernames
-        )
-    # Adding custom providers to global Faker
-    fake.add_provider(username_id_provider)
-    
     try:
         session_id = ( session if session 
             else fake.unique.uuid4() )
@@ -167,14 +194,15 @@ def generate_clickstream_record(session, user, timestamp, platform):
         start_timestamp = ( 
             end_timestamp - datetime.timedelta(seconds=session_duration_sec)
             )
-        client_ip = fake.ipv4_public()
+        client_ip = fake.public_ip()
         client_platform = platform
         canonical_url = fake.url()
         domain_name = fake.domain_name()
         app_id = fake.word(ext_word_list=apps)
         if platform == 'mobile':
-            device_id = fake.hexify('^^^^^^^^^^^^^^^^',True)
-            user_name = fake.username_id()
+            device_id = fake.device_id()
+            user_name = ( fake.username_id() if fake.pybool() 
+                else None ) # True/False: authenticated/anonymous
         else:
             device_id = None
             user_name = user
@@ -233,6 +261,28 @@ def create_cookie_clickstream_datasets():
         'end_event', 'session_duration_sec', 'user-agent' ]
     cookie_row = []
     clickstream_row = []
+    
+    # Faker provider to randomize across unique user names
+    username_id_provider = DynamicProvider(
+        provider_name = "username_id",
+        elements = known_usernames
+        )
+    # Faker provider to randomize across a subet of public IP addresses
+    generate_public_ips_subset()
+    public_ip_provider = DynamicProvider(
+        provider_name = "public_ip",
+        elements = subset_ipv4_addresses
+        )
+    # Faker provider to randomize across a subet of device IDs
+    generate_device_ids_subset()
+    device_id_provider = DynamicProvider(
+        provider_name = "device_id",
+        elements = subset_device_ids
+        )
+    # Adding custom providers to global Faker
+    fake.add_provider(username_id_provider)
+    fake.add_provider(public_ip_provider)
+    fake.add_provider(device_id_provider)
     
     print('Creating cookie and clickstream source datasets')
     
