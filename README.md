@@ -40,6 +40,8 @@ Mock data for the below source datasets will be generated
 * Cookie database
 * Click Stream database
 
+Sample execution:
+
 ```sh
 python3 aws-poc-identity-graph/utils/create-source-datasets.py \
 --records 10000
@@ -72,12 +74,29 @@ Execution time for this process will depends on the compute resources available 
 * A volume of 20K first-party records could take 10-11 minutes when using a t3.large EC2 instance
 * A volume of 100K first-party records could take about 130 minutes when using a m5zn.2xlarge EC2 instance
 
+Additional parameters that can be optionaly used when generating raw data for source datasets:
+
+```sh
+usage: create-source-datasets.py [-h] [--records RECORDS]
+                                 [--uniqueness UNIQUENESS] [--debug {0,1}]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --records RECORDS     Amount of mock data records to generate
+  --uniqueness UNIQUENESS
+                        Uniqueness percentage of mock data generated for IPv4
+                        addresses and Device IDs
+  --debug {0,1}         Turn On/Off debugging (detailed output with muck data
+                        generated)
+```
+
 ### Step 4: Upload source datasets files to S3 bucket
 
 CSV files with raw data will be stored into the `datasets` S3 prefix
 
 ```sh
-BUCKET_NAME="poc-identity-graph-733157031621"
+AWS_ACCOUNT_ID="1234567890"
+BUCKET_NAME="poc-identity-graph-${AWS_ACCOUNT_ID}"
 PREFIX="datasets/sources/initial"
 aws s3 cp first_party_data_full.csv s3://$BUCKET_NAME/$PREFIX/first_party/
 aws s3 cp cookie_data_full.csv s3://$BUCKET_NAME/$PREFIX/cookie/
@@ -90,7 +109,8 @@ aws s3 cp transactional_data_full.csv s3://$BUCKET_NAME/$PREFIX/transactional/
 #### 5.1: Upload the CloudFormation templates to S3 bucket
 
 ```sh
-BUCKET_NAME="poc-identity-graph-733157031621"
+AWS_ACCOUNT_ID="1234567890"
+BUCKET_NAME="poc-identity-graph-${AWS_ACCOUNT_ID}"
 PREFIX="cloudformation-templates"
 aws s3 sync aws-poc-identity-graph/cloudformation-templates/ \
 s3://$BUCKET_NAME/$PREFIX/
@@ -225,12 +245,11 @@ Before running ETL jobs against source datasets stored in the Glue Data Catalog,
 +-------------------+----------+
 |       Name        |  Type    |
 +-------------------+----------+
-|  product_id       |  string  |
+|  purchase_id      |  string  |
 |  product_name     |  string  |
 |  purchased_date   |  string  |
 |  product_category |  string  |
 |  customer_id      |  string  |
-|  customer_email   |  string  |
 |  reward_points    |  bigint  |
 +-------------------+----------+
 ```
