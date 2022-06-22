@@ -13,11 +13,11 @@ import pandas as pd
 # Defining input parameters
 parser = argparse.ArgumentParser()
 parser.add_argument('--records', default='10000', 
-    help='Amount of mock data records to generate')
+    help='Amount of mock data records to generate. Default value is 10000')
 parser.add_argument('--uniqueness', default='30', 
-    help='Uniqueness percentage of mock data generated for IPv4 addresses and Device IDs')
+    help='Uniqueness percentage of mock data generated for IPv4 addresses and Device IDs. Default value is 30')
 parser.add_argument('--debug', default=0, type=int, choices=[0,1], 
-    help='Turn On/Off debugging (detailed output with muck data generated)')
+    help='Turn On/Off debugging (detailed output with muck data generated). Default value is 0')
 
 # Parse input arguments
 args = parser.parse_args()

@@ -82,12 +82,13 @@ usage: create-source-datasets.py [-h] [--records RECORDS]
 
 optional arguments:
   -h, --help            show this help message and exit
-  --records RECORDS     Amount of mock data records to generate
+  --records RECORDS     Amount of mock data records to generate. Default value
+                        is 10000
   --uniqueness UNIQUENESS
                         Uniqueness percentage of mock data generated for IPv4
-                        addresses and Device IDs
+                        addresses and Device IDs. Default value is 30
   --debug {0,1}         Turn On/Off debugging (detailed output with muck data
-                        generated)
+                        generated). Default value is 0
 ```
 
 ### Step 4: Upload source datasets files to S3 bucket
