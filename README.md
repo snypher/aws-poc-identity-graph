@@ -56,6 +56,8 @@ First-party dataset output file /data/first_party_data_full.csv
 Creating transactional source dataset
 Transactional dataset output file: /data/transactional_data_full.csv
 
+Generating 3000 records for public IP addresses
+Generating 3000 records for Device IDs
 Creating cookie and clickstream source datasets
 Clickstream dataset output file: /data/clickstream_data_full.csv
 Cookie dataset output file: /data/cookie_data_full.csv
@@ -72,7 +74,7 @@ Execution time for this process will depends on the compute resources available 
 
 * A volume of 10K first-party records could take 3-4 minutes when using a t3.large EC2 instance
 * A volume of 20K first-party records could take 10-11 minutes when using a t3.large EC2 instance
-* A volume of 100K first-party records could take about 130 minutes when using a m5zn.2xlarge EC2 instance
+* A volume of 100K first-party records could take about 85 minutes when using a m6i.4xlarge EC2 instance
 
 Additional parameters that can be optionaly used when generating raw data for source datasets:
 
