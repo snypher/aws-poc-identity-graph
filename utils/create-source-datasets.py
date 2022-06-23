@@ -16,6 +16,8 @@ parser.add_argument('--records', default='10000',
     help='Amount of mock data records to generate. Default value is 10000')
 parser.add_argument('--uniqueness', default='30', 
     help='Uniqueness percentage of mock data generated for IPv4 addresses and Device IDs. Default value is 30')
+parser.add_argument('--incremental', default=0, type=int, choices=[0,1], 
+    help='Switch filenames suffix from "_data_full" to "_data_inc". Suffix is used for output CSV files indicating mock data generated will be used for initial load or incremental loads into the graph. Default value is 0')
 parser.add_argument('--debug', default=0, type=int, choices=[0,1], 
     help='Turn On/Off debugging (detailed output with muck data generated). Default value is 0')
 
@@ -65,7 +67,8 @@ def generate_device_ids_subset():
 
 # Create mock data for first-party source dataset (e.g. CRM database)
 def create_first_party_dataset():
-    filename = 'first_party_data_full.csv'
+    suffix = ( '_data_inc' if args.incremental else '_data_full' )
+    filename = 'first_party{}.csv'.format(suffix)
     fields = [ 'user_name', 'email', 'phone_number', 'external_id', 
         'street_address', 'postcode', 'city', 'country', 'birthday', 
         'loyalty_points', 'loyalty_level' ]
@@ -118,7 +121,8 @@ def create_first_party_dataset():
             
 # Create mock data for transactional source dataset (e.g. purchase database)
 def create_transactional_dataset():
-    filename = 'transactional_data_full.csv'
+    suffix = ( '_data_inc' if args.incremental else '_data_full' )
+    filename = 'transactional{}.csv'.format(suffix)
     fields = [ 'purchase_id', 'product_name', 'purchased_date', 
         'product_category', 'customer_id', 'reward_points' ]
     brands = [ 'Samsung', 'LG', 'Sony', 'Motorola', 'BenQ', 'Apple' ]
@@ -251,8 +255,9 @@ def generate_cookie_record():
 
 # Create source dataset for cookies and clickstream
 def create_cookie_clickstream_datasets():
-    cookies_filename = 'cookie_data_full.csv'
-    clickstream_filename = 'clickstream_data_full.csv'
+    suffix = ( '_data_inc' if args.incremental else '_data_full' )
+    cookies_filename = 'cookie{}.csv'.format(suffix)
+    clickstream_filename = 'clickstream{}.csv'.format(suffix)
     cookie_fields = [ 'cookie_id', 'session_id', 'last_action', 'user_name', 
         'conversion_id', 'session_duration_sec' ]
     clickstream_fields = [ 'session_id', 'client_ip', 'client_platform', 

@@ -65,10 +65,10 @@ Cookie dataset output file: /data/cookie_data_full.csv
 
 Resulting CSV files with raw data per each dataset
 
-* `first_party_data_full.csv`
-* `cookie_data_full.csv`
-* `clickstream_data_full.csv`
-* `transactional_data_full.csv`
+* first-party: `first_party_data_full.csv`
+* cookie: `cookie_data_full.csv`
+* clickstream: `clickstream_data_full.csv`
+* transactional: `transactional_data_full.csv`
 
 Execution time for this process will depends on the compute resources available in your compute environment. Below are some references captured by running the script in different EC2 instance types and sizes
 
@@ -80,7 +80,8 @@ Additional parameters that can be optionaly used when generating raw data for so
 
 ```sh
 usage: create-source-datasets.py [-h] [--records RECORDS]
-                                 [--uniqueness UNIQUENESS] [--debug {0,1}]
+                                 [--uniqueness UNIQUENESS]
+                                 [--incremental {0,1}] [--debug {0,1}]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -89,13 +90,18 @@ optional arguments:
   --uniqueness UNIQUENESS
                         Uniqueness percentage of mock data generated for IPv4
                         addresses and Device IDs. Default value is 30
+  --incremental {0,1}   Switch filenames suffix from "_data_full" to
+                        "_data_inc". Suffix is used for output CSV files
+                        indicating mock data generated will be used for
+                        initial load or incremental loads into the graph.
+                        Default value is 0
   --debug {0,1}         Turn On/Off debugging (detailed output with muck data
                         generated). Default value is 0
 ```
 
 ### Step 4: Upload source datasets files to S3 bucket
 
-CSV files with raw data will be stored into the `datasets` S3 prefix
+CSV files with raw data for initial load into the graph will be stored into the `datasets/sources/initial` S3 prefix.
 
 ```sh
 AWS_ACCOUNT_ID="1234567890"
@@ -277,6 +283,61 @@ REGION="us-east-2"
 aws glue start-job-run \
 --job-name edges-initial-load-s3-to-s3-poc-identity-graph \
 --region $REGION
+```
+
+### Step 10: Optionally, generate raw data simulating incremental updates from source datasets
+
+Mock data for the below source datasets will be generated
+
+* First-party database (e.g. CRM)
+* Transactional database (e.g. purchases)
+* Cookie database
+* Click Stream database
+
+Sample execution:
+
+```sh
+python3 aws-poc-identity-graph/utils/create-source-datasets.py \
+--records 1000 \
+--incremental 1
+```
+
+Sample output from command execution
+
+```
+Creating first-party source dataset
+First-party dataset output file /data/first_party_data_inc.csv
+
+Creating transactional source dataset
+Transactional dataset output file: /data/transactional_data_inc.csv
+
+Generating 500 records for public IP addresses
+Generating 500 records for Device IDs
+Creating cookie and clickstream source datasets
+Clickstream dataset output file: /data/clickstream_data_inc.csv
+Cookie dataset output file: /data/cookie_data_inc.csv
+```
+
+Resulting CSV files with raw data per each dataset
+
+* first-party: `first_party_data_full.csv`
+* cookie: `cookie_data_full.csv`
+* clickstream: `clickstream_data_full.csv`
+* transactional: `transactional_data_full.csv`
+
+### Step 11: Optionally, upload source datasets files simulating incremental updates to S3 bucket
+
+CSV files with raw data for incremental loads into the graph will be stored into the `datasets/sources/incremental/<DATASET_NAME>/${TIMESTAMP}` S3 prefix. Timestamp is calculated in UTC using the format `YYYYMMDD_HHmmss`.
+
+```sh
+AWS_ACCOUNT_ID="1234567890"
+BUCKET_NAME="poc-identity-graph-${AWS_ACCOUNT_ID}"
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+PREFIX="datasets/sources/incremental"
+aws s3 cp first_party_data_inc.csv s3://$BUCKET_NAME/$PREFIX/first_party/${TIMESTAMP}/
+aws s3 cp cookie_data_inc.csv s3://$BUCKET_NAME/$PREFIX/cookie/${TIMESTAMP}/
+aws s3 cp clickstream_data_inc.csv s3://$BUCKET_NAME/$PREFIX/clickstream/${TIMESTAMP}/
+aws s3 cp transactional_data_inc.csv s3://$BUCKET_NAME/$PREFIX/transactional/${TIMESTAMP}/
 ```
 
 ## References
