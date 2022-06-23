@@ -19,7 +19,7 @@
 			"Description": "S3 path for source datasets CVS files (files to crawl)",
 			"Type": "String",
 			"AllowedPattern": "^s3://.*/$",
-			"Default": "s3://poc-identity-graph-733157031621/datasets/sources/initial/"
+			"Default": "s3://poc-identity-graph-733157031621/datasets/sources/"
 		},
 		"S3GraphDatasetsPath": {
 			"Description": "S3 path to store gremlin-formated CVS files (graph datasets)",
