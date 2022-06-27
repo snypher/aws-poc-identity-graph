@@ -285,7 +285,19 @@ aws glue start-job-run \
 --region $REGION
 ```
 
-### Step 10: Optionally, generate raw data simulating incremental updates from source datasets
+### Step 10: Load initial data from source datasets into the graph database
+
+Access the Jupyter server installed into the SageMaker Notebook instance created by Neptune Workbench CloudFormation stack.
+
+Once you open the Jupyter web console there is a folder named `Neptune` which include a set of predefined Jupyter notebooks. Upload the Jupyter notebook [`AnyCompany-Identity-Graph-PoC`](https://github.com/snypher/aws-poc-identity-graph/blob/main/notebooks/AnyCompany-Identity-Graph-PoC.ipynb) to same folder and open it.
+
+Go specifically to "Creating the Identity Graph" section, step 9 "Load initial data into the Identity Graph". Execute the below code cell to submit a Neptune bulk loader job
+
+```plain
+%load
+```
+
+### Step 11: Optionally, generate raw data simulating incremental updates from source datasets
 
 Mock data for the below source datasets will be generated
 
@@ -325,7 +337,7 @@ Resulting CSV files with raw data per each dataset
 * clickstream: `clickstream_data_full.csv`
 * transactional: `transactional_data_full.csv`
 
-### Step 11: Optionally, upload source datasets files simulating incremental updates to S3 bucket
+### Step 12: Optionally, upload source datasets files simulating incremental updates to S3 bucket
 
 CSV files with raw data for incremental loads into the graph will be stored into the `datasets/sources/incremental/<DATASET_NAME>/${TIMESTAMP}` S3 prefix. Timestamp is calculated in UTC using the format `YYYYMMDD_HHmmss`.
 
