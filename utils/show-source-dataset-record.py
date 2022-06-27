@@ -44,7 +44,12 @@ try:
     print('Randomly selecting the {} record # {}'.format(args.dataset,skip))
     print('')
     
-    df = pd.read_csv(csv_file_path, names=col_names, usecols=cols, skiprows=skip, nrows=1)
+    df = pd.read_csv(csv_file_path, names=col_names, 
+        usecols=cols, skiprows=skip, nrows=1)
+    print('Mock data for a single {} record'.format(args.dataset))
+    print('----------------------------------------')
+    print(df1.squeeze())
+    print('')
 except Exception as e:
     print(f"Unexpected exception : {str(e)}")
     raise e
