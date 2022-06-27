@@ -7,7 +7,13 @@
       "AllowedPattern": "[-a-z0-9]+",
       "MaxLength": 50,
       "Default": "poc-identity-graph"
-    }
+    },
+    "S3PoCBucketName": {
+			"Description": "Name of the S3 bucket with the PoC's datasets and other artifacts",
+			"Type": "String",
+			"AllowedPattern": "^[a-z0-9][a-z0-9.-][a-z0-9.-].+",
+			"Default": "poc-identity-graph-733157031621"
+		}
   },
   "Resources": {
     "NeptuneEC2ClientRole": {
@@ -360,6 +366,16 @@
 									],
 									"Resource": {
 										"Fn::Sub": "arn:${AWS::Partition}:s3:::*"
+									}
+								},
+								{
+									"Effect": "Allow",
+									"Action": [
+										"s3:PutObject"
+									],
+									"Resource": {
+										"Fn::Sub": "arn:${AWS::Partition}:s3:::${S3PoCBucketName}",
+										"Fn::Sub": "arn:${AWS::Partition}:s3:::${S3PoCBucketName}/*"
 									}
 								}
 							]
