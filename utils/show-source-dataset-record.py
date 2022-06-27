@@ -48,7 +48,7 @@ try:
         usecols=cols, skiprows=skip, nrows=1)
     print('Mock data for a single {} record'.format(args.dataset))
     print('----------------------------------------')
-    print(df1.squeeze())
+    print(df.squeeze())
     print('')
 except Exception as e:
     print(f"Unexpected exception : {str(e)}")
