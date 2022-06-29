@@ -14,7 +14,8 @@ git clone https://github.com/snypher/aws-poc-identity-graph.git
 ### Step 2: Create S3 bucket to store source datasets and PoC artifacts
 
 ```sh
-BUCKET_NAME="poc-identity-graph-733157031621"
+AWS_ACCOUNT_ID="1234567890"
+BUCKET_NAME="poc-identity-graph-${AWS_ACCOUNT_ID}"
 REGION="us-east-2"
 aws s3 mb s3://$BUCKET_NAME \
 --region $REGION
@@ -25,7 +26,7 @@ aws s3api put-bucket-encryption \
 aws s3api put-bucket-tagging \
 --bucket $BUCKET_NAME \
 --tagging 'TagSet=[{Key=auto-delete,Value=never},
-{Key=Environment,Value=ab3},{Key=CreatedBy,Value=chvezk}]'
+{Key=Environment,Value=poc-identity-graph}]'
 aws s3api put-bucket-versioning \
 --bucket $BUCKET_NAME \
 --versioning-configuration Status=Enabled
@@ -115,7 +116,7 @@ aws s3 cp transactional_data_full.csv s3://$BUCKET_NAME/$PREFIX/transactional/
 
 ### Step 5: Prepare the base infrastructure (VPC, IAM, Neptune DB and Glue)
 
-#### 5.1: Upload the CloudFormation templates to S3 bucket
+#### 5.1: Upload the CloudFormation templates and additional scripts to S3 bucket
 
 ```sh
 AWS_ACCOUNT_ID="1234567890"
@@ -123,9 +124,18 @@ BUCKET_NAME="poc-identity-graph-${AWS_ACCOUNT_ID}"
 PREFIX="cloudformation-templates"
 aws s3 sync aws-poc-identity-graph/cloudformation-templates/ \
 s3://$BUCKET_NAME/$PREFIX/
+echo ""
+aws s3 ls s3://$BUCKET_NAME/$PREFIX/
+PREFIX="scripts"
+aws s3 sync aws-poc-identity-graph/utils/ \
+s3://$BUCKET_NAME/$PREFIX/
+echo ""
+aws s3 ls s3://$BUCKET_NAME/$PREFIX/
 ```
 
 #### 5.2: Generate a new SSH key pair in the selected AWS region
+
+Use this [public documentation](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html) from the Amazon EC2 User Guider for Linux Instances as reference
 
 Assign `ssh-key-poc-identity-graph` as key name
 
@@ -140,6 +150,7 @@ Assign `ssh-key-poc-identity-graph` as key name
 * This stack will create IAM resources
 * CloudFormation template file: [`iam-stack.json`](https://github.com/snypher/aws-poc-identity-graph/blob/main/cloudformation-templates/iam-stack.json)
 * Use `IAM-Stack-poc-identity-graph` as Stack name
+* Must provide the name of the S3 bucket created in **Step 2** as input parameter
 
 #### 5.5: Launch the Neptune Core CloudFormation stack 
 
