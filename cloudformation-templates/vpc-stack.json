@@ -56,15 +56,13 @@
           },
           {
             "Key": "Environment",
-            "Value": "ab3"
+            "Value": {
+              "Fn::Sub": "${InfrastructureID}"
+            }
           },
           {
             "Key": "auto-delete",
             "Value": "never"
-          },
-          {
-            "Key": "CreatedBy",
-            "Value": "chvezk"
           }
         ]
       }
@@ -81,15 +79,13 @@
           },
           {
             "Key": "Environment",
-            "Value": "ab3"
+            "Value": {
+              "Fn::Sub": "${InfrastructureID}"
+            }
           },
           {
             "Key": "auto-delete",
             "Value": "never"
-          },
-          {
-            "Key": "CreatedBy",
-            "Value": "chvezk"
           }
         ]
       }
@@ -127,15 +123,13 @@
           },
           {
             "Key": "Environment",
-            "Value": "ab3"
+            "Value": {
+              "Fn::Sub": "${InfrastructureID}"
+            }
           },
           {
             "Key": "auto-delete",
             "Value": "never"
-          },
-          {
-            "Key": "CreatedBy",
-            "Value": "chvezk"
           }
         ]
       }
@@ -153,15 +147,13 @@
           },
           {
             "Key": "Environment",
-            "Value": "ab3"
+            "Value": {
+              "Fn::Sub": "${InfrastructureID}"
+            }
           },
           {
             "Key": "auto-delete",
             "Value": "never"
-          },
-          {
-            "Key": "CreatedBy",
-            "Value": "chvezk"
           }
         ]
       }
@@ -188,15 +180,13 @@
           },
           {
             "Key": "Environment",
-            "Value": "ab3"
+            "Value": {
+              "Fn::Sub": "${InfrastructureID}"
+            }
           },
           {
             "Key": "auto-delete",
             "Value": "never"
-          },
-          {
-            "Key": "CreatedBy",
-            "Value": "chvezk"
           }
         ]
       }
@@ -214,15 +204,13 @@
           },
           {
             "Key": "Environment",
-            "Value": "ab3"
+            "Value": {
+              "Fn::Sub": "${InfrastructureID}"
+            }
           },
           {
             "Key": "auto-delete",
             "Value": "never"
-          },
-          {
-            "Key": "CreatedBy",
-            "Value": "chvezk"
           }
         ]
       }
@@ -249,15 +237,13 @@
           },
           {
             "Key": "Environment",
-            "Value": "ab3"
+            "Value": {
+              "Fn::Sub": "${InfrastructureID}"
+            }
           },
           {
             "Key": "auto-delete",
             "Value": "never"
-          },
-          {
-            "Key": "CreatedBy",
-            "Value": "chvezk"
           }
         ]
       }
@@ -275,15 +261,13 @@
           },
           {
             "Key": "Environment",
-            "Value": "ab3"
+            "Value": {
+              "Fn::Sub": "${InfrastructureID}"
+            }
           },
           {
             "Key": "auto-delete",
             "Value": "never"
-          },
-          {
-            "Key": "CreatedBy",
-            "Value": "chvezk"
           }
         ]
       }
@@ -303,15 +287,13 @@
           },
           {
             "Key": "Environment",
-            "Value": "ab3"
+            "Value": {
+              "Fn::Sub": "${InfrastructureID}"
+            }
           },
           {
             "Key": "auto-delete",
             "Value": "never"
-          },
-          {
-            "Key": "CreatedBy",
-            "Value": "chvezk"
           }
         ]
       }
@@ -361,15 +343,13 @@
           },
           {
             "Key": "Environment",
-            "Value": "ab3"
+            "Value": {
+              "Fn::Sub": "${InfrastructureID}"
+            }
           },
           {
             "Key": "auto-delete",
             "Value": "never"
-          },
-          {
-            "Key": "CreatedBy",
-            "Value": "chvezk"
           }
         ]
       }
@@ -418,15 +398,13 @@
           },
           {
             "Key": "Environment",
-            "Value": "ab3"
+            "Value": {
+              "Fn::Sub": "${InfrastructureID}"
+            }
           },
           {
             "Key": "auto-delete",
             "Value": "never"
-          },
-          {
-            "Key": "CreatedBy",
-            "Value": "chvezk"
           }
         ]
       }
@@ -475,15 +453,13 @@
           },
           {
             "Key": "Environment",
-            "Value": "ab3"
+            "Value": {
+              "Fn::Sub": "${InfrastructureID}"
+            }
           },
           {
             "Key": "auto-delete",
             "Value": "never"
-          },
-          {
-            "Key": "CreatedBy",
-            "Value": "chvezk"
           }
         ]
       }
@@ -514,15 +490,13 @@
           },
           {
             "Key": "Environment",
-            "Value": "ab3"
+            "Value": {
+              "Fn::Sub": "${InfrastructureID}"
+            }
           },
           {
             "Key": "auto-delete",
             "Value": "never"
-          },
-          {
-            "Key": "CreatedBy",
-            "Value": "chvezk"
           }
         ]
       }
@@ -554,15 +528,13 @@
           },
           {
             "Key": "Environment",
-            "Value": "ab3"
+            "Value": {
+              "Fn::Sub": "${InfrastructureID}"
+            }
           },
           {
             "Key": "auto-delete",
             "Value": "never"
-          },
-          {
-            "Key": "CreatedBy",
-            "Value": "chvezk"
           }
         ]
       }
@@ -594,15 +566,13 @@
           },
           {
             "Key": "Environment",
-            "Value": "ab3"
+            "Value": {
+              "Fn::Sub": "${InfrastructureID}"
+            }
           },
           {
             "Key": "auto-delete",
             "Value": "never"
-          },
-          {
-            "Key": "CreatedBy",
-            "Value": "chvezk"
           }
         ]
       }
@@ -650,15 +620,13 @@
           },
           {
             "Key": "Environment",
-            "Value": "ab3"
+            "Value": {
+              "Fn::Sub": "${InfrastructureID}"
+            }
           },
           {
             "Key": "auto-delete",
             "Value": "never"
-          },
-          {
-            "Key": "CreatedBy",
-            "Value": "chvezk"
           }
         ]
       }
@@ -693,15 +661,13 @@
           },
           {
             "Key": "Environment",
-            "Value": "ab3"
+            "Value": {
+              "Fn::Sub": "${InfrastructureID}"
+            }
           },
           {
             "Key": "auto-delete",
             "Value": "never"
-          },
-          {
-            "Key": "CreatedBy",
-            "Value": "chvezk"
           }
         ]
       }
@@ -736,15 +702,13 @@
           },
           {
             "Key": "Environment",
-            "Value": "ab3"
+            "Value": {
+              "Fn::Sub": "${InfrastructureID}"
+            }
           },
           {
             "Key": "auto-delete",
             "Value": "never"
-          },
-          {
-            "Key": "CreatedBy",
-            "Value": "chvezk"
           }
         ]
       }
@@ -870,15 +834,13 @@
           },
           {
             "Key": "Environment",
-            "Value": "ab3"
+            "Value": {
+              "Fn::Sub": "${InfrastructureID}"
+            }
           },
           {
             "Key": "auto-delete",
             "Value": "never"
-          },
-          {
-            "Key": "CreatedBy",
-            "Value": "chvezk"
           }
         ]
       }
@@ -922,15 +884,13 @@
           },
           {
             "Key": "Environment",
-            "Value": "ab3"
+            "Value": {
+              "Fn::Sub": "${InfrastructureID}"
+            }
           },
           {
             "Key": "auto-delete",
             "Value": "never"
-          },
-          {
-            "Key": "CreatedBy",
-            "Value": "chvezk"
           }
         ]
       }

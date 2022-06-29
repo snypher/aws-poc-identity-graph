@@ -12,7 +12,9 @@
 			"Description": "Name of the S3 bucket with the PoC's datasets and other artifacts",
 			"Type": "String",
 			"AllowedPattern": "^[a-z0-9][a-z0-9.-][a-z0-9.-].+",
-			"Default": "poc-identity-graph-733157031621"
+			"ConstraintDescription": "Malformed input-Parameter S3PoCBucketName. It must contain a value that satisfy the S3 Bucket naming rules specified in the below Amazon S3 User Guide link https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html",
+			"MinLength": 3,
+			"MaxLength": 63
 		}
   },
   "Resources": {
@@ -52,15 +54,13 @@
         "Tags": [
           {
             "Key": "Environment",
-            "Value": "ab3"
+            "Value": {
+              "Fn::Sub": "${InfrastructureID}"
+            }
           },
           {
             "Key": "auto-delete",
             "Value": "never"
-          },
-          {
-            "Key": "CreatedBy",
-            "Value": "chvezk"
           }
         ],
         "Path": "/"
@@ -84,6 +84,43 @@
               ],
               "Resource": "*"
             }
+          ]
+        },
+        "Roles": [
+          {
+            "Ref": "NeptuneEC2ClientRole"
+          }
+        ]
+      }
+    },
+    "S3AccessPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": { 
+          "Fn::Sub": "S3AccessPolicy-${InfrastructureID}"
+        },
+        "PolicyDocument": {
+          "Statement": [
+            {
+							"Effect": "Allow",
+							"Action": [
+								"s3:Get*",
+								"s3:List*"
+							],
+							"Resource": {
+								"Fn::Sub": "arn:${AWS::Partition}:s3:::*"
+							}
+						},
+						{
+							"Effect": "Allow",
+							"Action": [
+								"s3:PutObject"
+							],
+							"Resource": {
+								"Fn::Sub": "arn:${AWS::Partition}:s3:::${S3PoCBucketName}",
+								"Fn::Sub": "arn:${AWS::Partition}:s3:::${S3PoCBucketName}/*"
+							}
+						}
           ]
         },
         "Roles": [
@@ -185,15 +222,13 @@
         "Tags": [
           {
             "Key": "Environment",
-            "Value": "ab3"
+            "Value": {
+              "Fn::Sub": "${InfrastructureID}"
+            }
           },
           {
             "Key": "auto-delete",
             "Value": "never"
-          },
-          {
-            "Key": "CreatedBy",
-            "Value": "chvezk"
           }
         ],
         "Path": "/"
@@ -279,15 +314,13 @@
 				"Tags": [
           {
             "Key": "Environment",
-            "Value": "ab3"
+            "Value": {
+              "Fn::Sub": "${InfrastructureID}"
+            }
           },
           {
             "Key": "auto-delete",
             "Value": "never"
-          },
-          {
-            "Key": "CreatedBy",
-            "Value": "chvezk"
           }
         ],
 				"MaxSessionDuration": 43200
@@ -399,15 +432,13 @@
         "Tags": [
           {
             "Key": "Environment",
-            "Value": "ab3"
+            "Value": {
+              "Fn::Sub": "${InfrastructureID}"
+            }
           },
           {
             "Key": "auto-delete",
             "Value": "never"
-          },
-          {
-            "Key": "CreatedBy",
-            "Value": "chvezk"
           }
         ]
 			}

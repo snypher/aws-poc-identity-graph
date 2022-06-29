@@ -94,11 +94,9 @@ Resources:
         - NotebookInstanceLifecycleConfigName
       Tags:
         - Key: 'Environment'
-          Value: 'ab3'
+          Value: !Ref InfrastructureID
         - Key: 'auto-delete'
           Value: 'never'
-        - Key: 'CreatedBy'
-          Value: 'chvezk'
 
   NeptuneNotebookInstanceLifecycleConfig:
     Type: AWS::SageMaker::NotebookInstanceLifecycleConfig

@@ -137,6 +137,14 @@
       "MaxLength": 50,
       "Default": "poc-identity-graph"
     },
+    "S3PoCBucketName": {
+			"Description": "Name of the S3 bucket with the PoC's datasets and other artifacts",
+			"Type": "String",
+			"AllowedPattern": "^[a-z0-9][a-z0-9.-][a-z0-9.-].+",
+			"ConstraintDescription": "Malformed input-Parameter S3PoCBucketName. It must contain a value that satisfy the S3 Bucket naming rules specified in the below Amazon S3 User Guide link https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html",
+			"MinLength": 3,
+			"MaxLength": 63
+		},
     "EC2ClientAmiId": {
       "Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
       "Default": "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
@@ -381,15 +389,13 @@
           },
           {
             "Key": "Environment",
-            "Value": "ab3"
+            "Value": {
+              "Fn::Sub": "${InfrastructureID}"
+            }
           },
           {
             "Key": "auto-delete",
             "Value": "never"
-          },
-          {
-            "Key": "CreatedBy",
-            "Value": "chvezk"
           }
         ]
       }
@@ -418,15 +424,13 @@
           },
           {
             "Key": "Environment",
-            "Value": "ab3"
+            "Value": {
+              "Fn::Sub": "${InfrastructureID}"
+            }
           },
           {
             "Key": "auto-delete",
             "Value": "never"
-          },
-          {
-            "Key": "CreatedBy",
-            "Value": "chvezk"
           }
         ]
       }
@@ -455,15 +459,13 @@
           },
           {
             "Key": "Environment",
-            "Value": "ab3"
+            "Value": {
+              "Fn::Sub": "${InfrastructureID}"
+            }
           },
           {
             "Key": "auto-delete",
             "Value": "never"
-          },
-          {
-            "Key": "CreatedBy",
-            "Value": "chvezk"
           }
         ]
       }
@@ -507,15 +509,13 @@
           },
           {
             "Key": "Environment",
-            "Value": "ab3"
+            "Value": {
+              "Fn::Sub": "${InfrastructureID}"
+            }
           },
           {
             "Key": "auto-delete",
             "Value": "never"
-          },
-          {
-            "Key": "CreatedBy",
-            "Value": "chvezk"
           }
         ],
         "AssociatedRoles": { 
@@ -562,15 +562,13 @@
           },
           {
             "Key": "Environment",
-            "Value": "ab3"
+            "Value": {
+              "Fn::Sub": "${InfrastructureID}"
+            }
           },
           {
             "Key": "auto-delete",
             "Value": "never"
-          },
-          {
-            "Key": "CreatedBy",
-            "Value": "chvezk"
           }
         ]
       },
@@ -601,15 +599,13 @@
           },
           {
             "Key": "Environment",
-            "Value": "ab3"
+            "Value": {
+              "Fn::Sub": "${InfrastructureID}"
+            }
           },
           {
             "Key": "auto-delete",
             "Value": "never"
-          },
-          {
-            "Key": "CreatedBy",
-            "Value": "chvezk"
           }
         ]
       },
@@ -671,15 +667,13 @@
           },
           {
             "Key": "Environment",
-            "Value": "ab3"
+            "Value": {
+              "Fn::Sub": "${InfrastructureID}"
+            }
           },
           {
             "Key": "auto-delete",
             "Value": "never"
-          },
-          {
-            "Key": "CreatedBy",
-            "Value": "chvezk"
           }
         ],
         "UserData": {
@@ -713,13 +707,13 @@
                     "SetupGremlinConsoleCondition",
                     {
                       "Fn::Join": ["", [
-                        "wget https://s3.amazonaws.com/aws-neptune-customer-samples/tinkerpop/apache-tinkerpop-gremlin-console-3.4.1-bin.zip",
+                        "wget https://archive.apache.org/dist/tinkerpop/3.5.2/apache-tinkerpop-gremlin-console-3.5.2-bin.zip",
                         "\n",
-                        "unzip apache-tinkerpop-gremlin-console-3.4.1-bin.zip",
+                        "unzip apache-tinkerpop-gremlin-console-3.5.2-bin.zip",
                         "\n",
-                        "rm apache-tinkerpop-gremlin-console-3.4.1-bin.zip",
+                        "rm apache-tinkerpop-gremlin-console-3.5.2-bin.zip",
                         "\n",
-                        "cd apache-tinkerpop-gremlin-console-3.4.1",
+                        "cd apache-tinkerpop-gremlin-console-3.5.2",
                         "\n",
                         "wget https://www.amazontrust.com/repository/SFSRootCAG2.pem",
                         "\n",
@@ -743,7 +737,7 @@
                         },
                         " >> neptune-remote.yaml",
                         "\n",
-                        "echo connectionPool: { enableSsl: true, trustCertChainFile: \"SFSRootCAG2.pem\"}",
+                        "echo connectionPool: { channelizer: org.apache.tinkerpop.gremlin.driver.SigV4WebSocketChannelizer, enableSsl: true, trustCertChainFile: \"SFSRootCAG2.pem\"}",
                         " >> neptune-remote.yaml",
                         "\n",
                         "echo serializer: { className: org.apache.tinkerpop.gremlin.driver.ser.GryoMessageSerializerV3d0, config: { serializeResultToString: true }}",
@@ -754,6 +748,16 @@
                     {"Ref": "AWS::NoValue"}
                   ]
                 },
+                "\n",
+                "cd /home/ec2-user",
+                "\n",
+                "mkdir -p .local/bin",
+                "\n",
+                "aws s3 sync s3://",
+                { "Ref": "S3PoCBucketName" },
+                "/scripts/ .local/bin/ && chmod +x .local/bin/*",
+                "\n",
+                "echo source .local/bin/neptune-client-env.sh >> .bash_profile",
                 "\n",
                 "cd /home/ec2-user",
                 "\n",

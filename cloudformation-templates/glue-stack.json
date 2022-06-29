@@ -177,9 +177,10 @@
 					"DeleteBehavior": "DEPRECATE_IN_DATABASE" 
 				},
 				"Tags": {
-					"Environment": "ab3", 
-					"auto-delete": "never", 
-					"CreatedBy": "chvezk" 
+					"Environment": { 
+						"Fn::Sub": "${InfrastructureID}" 
+					},
+					"auto-delete": "never" 
 				},
 				"Configuration": "{ \"Version\": 1.0, \"CrawlerOutput\": { \"Partitions\": { \"AddOrUpdateBehavior\": \"InheritFromTable\" }, \"Tables\": {\"AddOrUpdateBehavior\": \"MergeNewColumns\" } } }"
 			}
@@ -241,9 +242,10 @@
 				},
 				"GlueVersion": "3.0",
 				"Tags": {
-					"Environment": "ab3", 
-					"auto-delete": "never", 
-					"CreatedBy": "chvezk" 
+					"Environment": { 
+						"Fn::Sub": "${InfrastructureID}" 
+					}, 
+					"auto-delete": "never" 
 				}
 			}
 		},
@@ -304,9 +306,10 @@
 				},
 				"GlueVersion": "3.0",
 				"Tags": {
-					"Environment": "ab3", 
-					"auto-delete": "never", 
-					"CreatedBy": "chvezk" 
+					"Environment": { 
+						"Fn::Sub": "${InfrastructureID}" 
+					},
+					"auto-delete": "never" 
 				}
 			}
 		},
@@ -375,15 +378,13 @@
 				"Tags": [
 					{
 						"Key": "Environment",
-						"Value": "ab3" 
+						"Value": { 
+							"Fn::Sub": "${InfrastructureID}" 
+						}
 					},
 					{ 
 						"Key": "auto-delete", 
 						"Value": "never" 
-					},
-					{ 
-						"Key": "CreatedBy", 
-						"Value": "chvezk" 
 					}
 				]
 			}
