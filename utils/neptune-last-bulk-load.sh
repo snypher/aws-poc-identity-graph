@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-source $HOME/.bash_profile
+source $HOME/.local/bin/neptune-client-env.sh
 
 cluster_ep="https://${NEPTUNE_CLUSTER_ENDPOINT}:${NEPTUNE_CLUSTER_PORT}/loader"
 
