@@ -3,7 +3,22 @@ Proof-of-Concept (PoC) for Identity Graph using Amazon Neptune
 
 ## Deployment
 
-### Architecture [WIP]
+### Architecture
+
+#### Bash Load
+
+AWS Database Migration Service (DMS) is used to pull and store relevant data from Relational and Non-relational source systems into an S3 bucket. 
+As new data arrives to S3, these events trigger an AWS Glue Workflow. Schema is discovered by an AWS Glue Crawler and stored into a centralized Data Catalog. 
+Exported data is pulled from Amazon S3 by an AWS Glue Job (a.k.a. serverless ETL job) that prepares the data either for initial load by using Neptune bulk loader or for incremental loads by direct writing into Neptune DB
+
+<img src="../images/data-ingestion-bash-load-01.png" alt="data-ingestion-bash-load-01" width="1024"/>
+
+#### Online Load
+
+Source data is pushed through an API vended by the Customer Identity Graph solution. 
+This process represent new firts-party user behavioral data like cookies, device IDs and clickstream events that results from consumers interaction with specific AnyCompany websites (e.g. physical store landing page, loyalty program, and so)
+
+<img src="../images/data-ingestion-online-load-02.png" alt="data-ingestion-online-load-02" width="1024"/>
 
 ### Step 1: Clone the github repository
 
