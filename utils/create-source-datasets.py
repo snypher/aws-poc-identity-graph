@@ -9,6 +9,7 @@ import argparse
 import csv
 import datetime
 import pandas as pd
+import threading
 
 # Defining input parameters
 parser = argparse.ArgumentParser()
@@ -24,7 +25,7 @@ parser.add_argument('--debug', default=0, type=int, choices=[0,1],
 # Parse input arguments
 args = parser.parse_args()
 # Global Faker generator
-fake = Faker('en_US')
+#fake = Faker('en_US')
 # Get current working directory
 cwd = os.getcwd()
 # Global lists for customer profile attributes
@@ -37,6 +38,10 @@ subset_device_ids = []
 
 # Generate mock data for subset of faked public IP addresses
 def generate_public_ips_subset():
+    # Local Faker generator
+    fake = Faker('en_US')
+    # Switching shared Random instance
+    fake.seed_instance(5)
     subset = ( int((int(args.records)*int(args.uniqueness))/100) 
         if int(args.records) >= 100 else int(args.records) )
     
@@ -52,6 +57,10 @@ def generate_public_ips_subset():
 
 # Generate mock data for subset of faked Device IDs
 def generate_device_ids_subset():
+    # Local Faker generator
+    fake = Faker('en_US')
+    # Switching shared Random instance
+    fake.seed_instance(6)
     subset = ( int((int(args.records)*int(args.uniqueness))/100) 
         if int(args.records) >= 100 else int(args.records) )
     
@@ -77,7 +86,11 @@ def create_first_party_dataset():
         provider_name = "loyalty_level",
         elements = [ "beginner", "entusiast", "active", "leader" ]
         )
-        
+    
+    # Local Faker generator
+    fake = Faker('en_US')
+    # Switching shared Random instance
+    fake.seed_instance(1)
     # Adding custom providers to global Faker
     fake.add_provider(loyalty_provider)
     
@@ -115,6 +128,8 @@ def create_first_party_dataset():
         
         print('First-party dataset output file {0}/{1}'.format(
             cwd,filename))
+        
+        fake.unique.clear()
     except Exception as e:
         print(f"Unexpected exception : {str(e)}")
         raise e
@@ -142,6 +157,10 @@ def create_transactional_dataset():
         elements = known_external_ids
         )
         
+    # Local Faker generator
+    fake = Faker('en_US')
+    # Switching shared Random instance
+    fake.seed_instance(2)
     # Adding custom providers to global Faker
     fake.add_provider(email_provider)
     fake.add_provider(external_id_provider)
@@ -178,12 +197,14 @@ def create_transactional_dataset():
         
         print('Transactional dataset output file: {0}/{1}'.format(
             cwd,filename))
+        
+        fake.unique.clear()
     except Exception as e:
         print(f"Unexpected exception : {str(e)}")
         raise e
 
 # Generate mock data for clickstream source dataset
-def generate_clickstream_record(session, user, timestamp, platform):
+def generate_clickstream_record(fake, session, user, timestamp, platform):
     event_types = [ 'Purchase', 'Search', 'ProductView', 'Whishlist', 
         'PageView', 'DiscardCard', 'CompareProducts', 'SingIn', 'SingUp' ]
     apps = [ 'ecommerce', 'travel', 'health_providers', 'health_services' ]
@@ -224,7 +245,7 @@ def generate_clickstream_record(session, user, timestamp, platform):
     return row
             
 # Generate mock data for cookie source dataset
-def generate_cookie_record():
+def generate_cookie_record(fake):
     row = []
     
     # Faker provider to randomize across unique user names
@@ -267,29 +288,46 @@ def create_cookie_clickstream_datasets():
     cookie_row = []
     clickstream_row = []
     
+    print('Creating cookie and clickstream source datasets')
+    
+    # Local Faker generators
+    fake_local = Faker('en_US')
+    fake_cookie = Faker('en_US')
+    fake_clickstream = Faker('en_US')
+    # Switching shared Random instances
+    fake_cookie.seed_instance(3)
+    fake_clickstream.seed_instance(4)
     # Faker provider to randomize across unique user names
     username_id_provider = DynamicProvider(
         provider_name = "username_id",
         elements = known_usernames
         )
+    # Create execution threads to generate subsets of public IPs and device IDs
+    public_ips_thread = threading.Thread(target=generate_public_ips_subset())
+    device_ids_thread = threading.Thread(target=generate_device_ids_subset())
+    # Start threads to generate public_ips and device_ids subsets concurrently
+    public_ips_thread.start()
+    device_ids_thread.start()
+    # Wait until public_ips and device_ids threads finishes
+    public_ips_thread.join()
+    device_ids_thread.join()
     # Faker provider to randomize across a subet of public IP addresses
-    generate_public_ips_subset()
+    #generate_public_ips_subset()
     public_ip_provider = DynamicProvider(
         provider_name = "public_ip",
         elements = subset_ipv4_addresses
         )
     # Faker provider to randomize across a subet of device IDs
-    generate_device_ids_subset()
+    #generate_device_ids_subset()
     device_id_provider = DynamicProvider(
         provider_name = "device_id",
         elements = subset_device_ids
         )
     # Adding custom providers to global Faker
-    fake.add_provider(username_id_provider)
-    fake.add_provider(public_ip_provider)
-    fake.add_provider(device_id_provider)
-    
-    print('Creating cookie and clickstream source datasets')
+    fake_cookie.add_provider(username_id_provider)
+    fake_clickstream.add_provider(username_id_provider)
+    fake_clickstream.add_provider(public_ip_provider)
+    fake_clickstream.add_provider(device_id_provider)
     
     try:
         # Create DataFrame for cookie dataset
@@ -302,10 +340,11 @@ def create_cookie_clickstream_datasets():
             print('Clickstream Fields: {0}'.format(clickstream_fields))
         
         for i in range(int(args.records)):
-            if fake.pybool():   # True: is a web client
-                cookie_row = generate_cookie_record()
+            if fake_local.pybool():   # True: is a web client
+                cookie_row = generate_cookie_record(fake=fake_cookie)
                 if cookie_row:
                     clickstream_row = generate_clickstream_record(
+                        fake=fake_clickstream,
                         session=cookie_row[1],
                         user=cookie_row[3],
                         timestamp=cookie_row[2],
@@ -318,6 +357,7 @@ def create_cookie_clickstream_datasets():
                         print('Clickstream record: {0}'.format(clickstream_row))
             else:               # Anything else: is a mobile client
                 clickstream_row = generate_clickstream_record(
+                    fake=fake_clickstream,
                     session=None,
                     user=None,
                     timestamp=None,
@@ -336,6 +376,9 @@ def create_cookie_clickstream_datasets():
                 cwd,clickstream_filename))
         print('Cookie dataset output file: {0}/{1}'.format(
                 cwd,cookies_filename))
+                
+        fake_cookie.unique.clear()
+        fake_clickstream.unique.clear()
     except Exception as e:
         print(f"Unexpected exception : {str(e)}")
         raise e
@@ -344,13 +387,35 @@ def create_cookie_clickstream_datasets():
 def main():
     try:
         if args.debug: print('Current working directory: {0}'.format(cwd))
-        create_first_party_dataset()
-        print('')
-        create_transactional_dataset()
-        print('')
-        create_cookie_clickstream_datasets()
-        print('')
-        fake.unique.clear()
+        
+        # Create execution threads to each dataset
+        first_party_thread = threading.Thread(
+            target=create_first_party_dataset()
+            )
+        transactional_thread = threading.Thread(
+            target=create_transactional_dataset()
+            )
+        cookie_clickstream_thread = threading.Thread(
+            target=create_cookie_clickstream_datasets()
+            )
+        
+        # Start thread to generate first-party dataset
+        first_party_thread.start()
+        # Wait until first-party thread finishes
+        first_party_thread.join()
+        #create_first_party_dataset()
+        #print('')
+        # Start threads to generate other datasets concurrently
+        transactional_thread.start()
+        cookie_clickstream_thread.start()
+        # Wait until other threads finishes
+        transactional_thread.join()
+        cookie_clickstream_thread.join()
+        #create_transactional_dataset()
+        #print('')
+        #create_cookie_clickstream_datasets()
+        #print('')
+        #fake.unique.clear()
     except Exception as e:
         print(f"Unexpected exception : {str(e)}")
         raise e
